@@ -1,0 +1,28 @@
+# comet_logger:
+#   _target_: hazuchi.callbacks.CometLogger
+#   project: efnet-flax
+#   name: ${name}
+
+json_logger:
+  _target_: hazuchi.callbacks.JsonLogger
+
+console_logger:
+  _target_: hazuchi.callbacks.PrintMetrics
+  entries: null
+
+timer:
+  _target_: hazuchi.callbacks.Timer
+
+last_checkpointer:
+  _target_: hazuchi.callbacks.Snapshot
+  filename: checkpoints/last_state.ckpt
+  load_before_fitting: True
+
+best_checkpointer:
+  _target_: hazuchi.callbacks.Snapshot
+  filename: checkpoints/last_state.ckpt
+  monitor: val/acc1
+  load_before_testing: True
+
+progbar:
+  _target_: hazuchi.callbacks.ProgressBar

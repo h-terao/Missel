@@ -1,0 +1,9 @@
+_target_: src.optimizers.sgd.sgd
+
+train_steps: null  # overwrite
+
+lr: 0.1
+weight_decay: 0.00001
+momentum: 0.9
+nesterov: True
+warmup_steps: 0

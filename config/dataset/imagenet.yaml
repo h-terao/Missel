@@ -1,0 +1,11 @@
+_target_: src.datasets.ImageNet
+
+data_dir: ${data_dir}
+num_labels: ???
+batch_size: 64
+uratio: 1
+test_batch_size: 256
+include_lb_to_ulb: True
+shuffle_batches: -1
+seed: ${seed}
+cache: True

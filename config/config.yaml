@@ -1,0 +1,32 @@
+# @package _global_
+
+# specify here default training configuration
+defaults:
+  - _self_
+  - model: vat.yaml
+  - net: wrn28_2.yaml
+  - optimizer: sgd.yaml
+  - dataset: cifar10.yaml
+  - callbacks: default.yaml # set this to null if you don't want to use callbacks
+  - mode: default.yaml
+  - experiment: null
+  - hparams_search: null
+
+  # enable color logging
+  - override hydra/hydra_logging: colorlog
+  - override hydra/job_logging: colorlog
+
+work_dir: ${hydra:runtime.cwd}
+data_dir: ${work_dir}/data/
+
+seed: 1234
+epoch_length: 1024
+max_epochs: 1024
+precision: fp32
+
+prefetch: True
+
+ignore_warnings: True
+
+name: null
+autoload: True

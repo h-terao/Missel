@@ -1,0 +1,5 @@
+_target_: src.nets.WideResNet
+
+stage_sizes: [4, 4, 4]
+widen_factor: 2
+precision: ${precision}
