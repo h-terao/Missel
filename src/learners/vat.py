@@ -8,13 +8,30 @@ from jax import nn
 from flax import core
 import chex
 
-from .model import Model, TrainState, functional as F, transforms as T
+from .learner import Learner, TrainState, functional as F, transforms as T
 
 Batch = Any
 
 
-class VAT(Model):
-    """Virtual Adversarial Training."""
+class VAT(Learner):
+    """A Learner for Virtual Adversarial Training.
+
+    Args:
+        data_meta: Meta information of the dataset.
+        train_steps (int): Total number of steps for training.
+        base_model (Module): Base model.
+        tx (GradientTransformation): Optax optimizer.
+        label_smoothing (float): Label smoothing parameter.
+        momentum_ema (float): Momentum value to update EMA model.
+        precision (str): Precision. fp16, bf16 or fp32.
+
+        lambda_y (float): Coefficient of the unsupervised loss.
+        lambda_entmin (float): Coefficient of the entropy loss.
+        unsup_warmup_pos (float): Warmup position of epochs.
+        vat_eps (float): Norm of adversarial noises.
+        xi (float): Norm of adversarial noises to sample.
+        num_iters (int): Number of steps to update the adversarial noises.
+    """
 
     lambda_y: float = 1.0
     lambda_entmin: float = 0.0

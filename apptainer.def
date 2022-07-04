@@ -1,0 +1,25 @@
+Bootstrap: docker
+From: continuumio/miniconda3
+
+
+%files
+    requirements.txt ./
+
+%environment
+    export TZ=Asia/Tokyo
+    export PYTHONDONTWRITEBYTECODE=1
+    export XLA_PYTHON_CLIENT_PREALLOCATE=false
+    export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4
+
+%post
+    rm -rf /var/lib/apt/lists/*
+    apt-get update && apt-get upgrade -y
+    DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata software-properties-common \
+        wget git pkg-config ccache unzip libtcmalloc-minimal4 g++
+
+    export PATH=/opt/conda/bin:$PATH
+    CONDA_OVERRIDE_CUDA="11.2" conda install -y \
+        jaxlib=*=*cuda112* jax cudatoolkit cuda-nvcc -c conda-forge -c nvidia/label/cuda-11.3.1
+
+    # Install other libraries.
+    pip install -r requirements.txt

@@ -13,17 +13,31 @@ class Dataset:
     """A base class of datasets.
 
     Args:
-        rng: PRNG key.
-        num_lables: Number of labels per class.
-        batch_size: Batch size of labeled data.
-        uratio: Unlabeled ratio.
+        data_dir: Dataset directory.
+        num_labels (int): Number of labels.
+        batch_size (int): Batch size.
+        uratio (int): A parameter to determine the unlabeled batch size.
+        test_batch_size (int): Test batch size.
+        include_lb_to_ulb (bool): If True, labeled data is also used
+            to compute unsupervised loss.
+        shuffle_batches (int): Buffer size to shuffle batches.
+            If -1, set the dataset size; i.e., all data is shuffled.
+        seed (int): Random seed value.
+        cache_on_memory (bool): If True, cache data in memory.
+        cache_on_disk (bool): If True, cache data in disk.
+            This flag will shorten the 1st epoch from the 2nd trials.
+        download (bool): If True, download hub dataset in local.
+            If you do not use high-speed LAN, this option will be useful.
+
+    Notes:
+        The 1st epoch will take very long time. Maybe, this is the problem of hub.
+        To shorten the processing times after the 1st trial, set cache_on_disk=True.
     """
 
     name: str
     lb_path: str
     test_path: str
     data_meta: dict
-
     ulb_path: str | None = None
     preprocess: Callable | None = None
 
@@ -37,7 +51,8 @@ class Dataset:
         include_lb_to_ulb: bool = True,
         shuffle_batches: int = -1,
         seed: int = 0,
-        cache: bool = False,
+        cache_on_memory: bool = True,
+        cache_on_disk: bool = False,
         download: bool = False,
     ) -> None:
         self.data_dir = data_dir
@@ -46,16 +61,18 @@ class Dataset:
         self.test_batch_size = test_batch_size or self.ulb_batch_size
         self.include_lb_to_ulb = include_lb_to_ulb
         self.shuffle_batches = shuffle_batches if shuffle_batches > 0 else math.inf
-        self.cache = cache
+        self.cache_on_memory = cache_on_memory
+        self.cache_on_disk = cache_on_disk
 
-        self.cache_dir = os.path.join(data_dir, "caches", f"{self.name}.{num_labels}.{seed}")
-        os.makedirs(self.cache_dir, exist_ok=True)
+        if self.cache_on_disk:
+            self.cache_dir = os.path.join(data_dir, "caches", f"{self.name}.{num_labels}.{seed}")
+            os.makedirs(self.cache_dir, exist_ok=True)
+        else:
+            self.cache_dir = None
 
         if self.ulb_path is None:
             train_data = data_utils.get_data(self.lb_path, download)
-            lb_data, ulb_data = data_utils.split_data(
-                jr.PRNGKey(seed), train_data, num_labels, include_lb_to_ulb
-            )
+            lb_data, ulb_data = data_utils.split_data(jr.PRNGKey(seed), train_data, num_labels)
         else:
             lb_data = data_utils.get_data(self.lb_path, download)
             lb_data, _ = data_utils.split_data(jr.PRNGKey(seed), lb_data, num_labels)
@@ -82,8 +99,8 @@ class Dataset:
     def map_fn(self, index, item):
         images = item["images"]
         labels = item["labels"]
-
-        images = self.preprocess(images)
+        if self.preprocess is not None:
+            images = self.preprocess(images)
         labels = tf.reshape(labels, shape=[-1])
         return {
             "indices": index,
@@ -103,8 +120,10 @@ class Dataset:
 
         lb_data = lb_data.enumerate()
         lb_data = lb_data.map(self.map_fn, num_parallel_calls=tf.data.AUTOTUNE)
-        if self.cache:
+        if self.cache_on_disk:
             lb_data = lb_data.cache(os.path.join(self.cache_dir, "lb.cache"))
+        if self.cache_on_memory:
+            lb_data = lb_data.cache()
         lb_data = lb_data.repeat().shuffle(
             min(self.shuffle_batches * self.lb_batch_size, num_lb_examples)
         )
@@ -115,8 +134,10 @@ class Dataset:
 
         ulb_data = ulb_data.enumerate()
         ulb_data = ulb_data.map(self.map_fn, num_parallel_calls=tf.data.AUTOTUNE)
-        if self.cache:
+        if self.cache_on_disk:
             ulb_data = ulb_data.cache(os.path.join(self.cache_dir, "ulb.cache"))
+        if self.cache_on_memory:
+            ulb_data = ulb_data.cache()
         ulb_data = ulb_data.repeat().shuffle(
             min(self.shuffle_batches * self.ulb_batch_size, num_ulb_examples)
         )
@@ -130,8 +151,11 @@ class Dataset:
 
     def test_loader(self):
         test_data: tf.data.Dataset = self.test_data.tensorflow()
+        test_data = test_data.enumerate()
         test_data = test_data.map(self.map_fn, num_parallel_calls=tf.data.AUTOTUNE)
-        test_data = test_data.batch(self.test_batch_size, num_parallel_calls=tf.data.AUTOTUNE)
-        if self.cache:
+        if self.cache_on_disk:
             test_data = test_data.cache(os.path.join(self.cache_dir, "test.cache"))
+        if self.cache_on_memory:
+            test_data = test_data.cache()
+        test_data = test_data.batch(self.test_batch_size, num_parallel_calls=tf.data.AUTOTUNE)
         return test_data.as_numpy_iterator()

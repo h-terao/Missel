@@ -9,7 +9,7 @@ import rich
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-from src import utils
+from src.utils import utils
 
 
 logger = utils.get_logger(__name__)
@@ -27,8 +27,8 @@ def train(config: DictConfig):
 
     logger.info(f"Instantiating model <{config.model._target_}>")
     train_steps = config.max_epochs * config.epoch_length
-    model = hydra.utils.instantiate(
-        config.model,
+    learner = hydra.utils.instantiate(
+        config.learner,
         data_meta=dataset.data_meta,
         train_steps=train_steps,
         tx={"train_steps": train_steps},
@@ -43,7 +43,7 @@ def train(config: DictConfig):
                 and conf.get("entities", None) is None
             ):
                 entries = ["epoch"]
-                entries += [f"train/{x}" for x in model.default_metrics]
+                entries += [f"train/{x}" for x in learner.default_metrics]
                 entries += ["val/loss", "val/acc1", "val/acc5", "val/EMA/acc1"]
                 conf["entries"] = entries
 
@@ -53,14 +53,14 @@ def train(config: DictConfig):
     trainer = Trainer(
         out_dir="./",
         max_epochs=config.max_epochs,
-        train_fn=model.train_fn,
-        val_fn=model.test_fn,
+        train_fn=learner.train_fn,
+        val_fn=learner.test_fn,
         callbacks=callbacks,
         prefetch=config.prefetch,
     )
 
     logger.info("Initializing train_state!")
-    train_state, model_info = model.init_fn(rng, batch)
+    train_state, model_info = learner.init_fn(rng, batch)
 
     logger.info("Logging hyperparameters!")
     hparams = flatten_dict(OmegaConf.to_container(config, resolve=True), sep="/")

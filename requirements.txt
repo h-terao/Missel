@@ -1,0 +1,19 @@
+flax==0.5.2
+chex==0.1.3
+optax==0.1.2
+git+https://github.com/h-terao/hazuchi
+git+https://github.com/h-terao/squidink
+tensorflow==2.9.1
+einops==0.4.1
+hub
+
+# Loggers
+comet-ml==3.31.5
+
+# Utilities
+hydra-colorlog==1.2.0
+hydra-core==1.2.0
+rich==11.2.0
+tqdm==4.64.0
+python-dotenv==0.20.0
+pillow

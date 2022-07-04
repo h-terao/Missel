@@ -1,3 +1,4 @@
+from __future__ import annotations
 import jax.numpy as jnp
 import jax.random as jr
 import chex
@@ -22,7 +23,9 @@ def get_data(path: str, download: bool) -> hub.Dataset:
 
 
 def split_data(
-    rng: chex.Array, data: hub.Dataset, num_labels: int | float
+    rng: chex.Array,
+    data: hub.Dataset,
+    num_labels: int | float,
 ) -> tuple[hub.Dataset, hub.Dataset]:
     """Split dataset into two sub datasets.
 
@@ -30,8 +33,6 @@ def split_data(
         rng: PRNG key.
         data: Dataset to split.
         num_labels (int | float): Number or ratio of labeled samples per label.
-        include_lb_to_ulb (bool): If True, unlabeled data also holds samples
-            stored in labeled data.
     """
     labels = data["labels"].numpy().flatten()
     unique_labels, counts = jnp.unique(labels, return_counts=True)
@@ -49,12 +50,13 @@ def split_data(
         else:
             thr = count
 
-        lb_inds.append(num_labels[:thr])
-        ulb_inds.append(num_labels[thr:])
+        lb_inds.append(index[:thr])
+        ulb_inds.append(index[thr:])
 
     lb_rng, ulb_rng = jr.split(rng)
     lb_inds = jr.permutation(lb_rng, jnp.concatenate(lb_inds))
     ulb_inds = jr.permutation(ulb_rng, jnp.concatenate(ulb_inds))
+
     return data[lb_inds.tolist()], data[ulb_inds.tolist()]
 
 

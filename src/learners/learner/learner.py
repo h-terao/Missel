@@ -22,13 +22,13 @@ Batch = Dict[str, chex.Array]
 
 
 @dataclass
-class Model(abc.ABC):
+class Learner(abc.ABC):
     """Abstract class to implement SSL methods."""
 
     data_meta = field(default_factory=dict)
     train_steps: int
 
-    net: linen.Module
+    base_model: linen.Module
     tx: optax.GradientTransformation
     label_smoothing: float
     momentum_ema: float
@@ -48,9 +48,10 @@ class Model(abc.ABC):
         pass
 
     def init_fn(self, rng: chex.PRNGKey, batch: Batch, **kwargs) -> TrainState:
+        """Initialize train_state."""
         param_rng, state_rng = jr.split(rng)
         model = self.classifier_cls(
-            self.net,
+            self.base_model,
             num_classes=self.data_meta["num_classes"],
             mean=self.data_meta["mean"],
             std=self.data_meta["std"],

@@ -1,7 +1,7 @@
-_target_: src.models.vat.VAT
+_target_: src.learners.VAT
 
 # Common parameters
-net: ${net}
+base_model: ${model}
 tx: ${optimizer}
 label_smoothing: 0.1
 momentum_ema: 0.999
