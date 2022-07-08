@@ -3,7 +3,7 @@ from . import dataset
 
 
 class CIFAR10(dataset.ArrayDataset):
-    name: str = "cifar10"
+    data_name: str = "cifar10"
     num_classes: int = 10
     image_size: int = 32
     mean = [x / 255 for x in [125.3, 123.0, 113.9]]
@@ -11,7 +11,7 @@ class CIFAR10(dataset.ArrayDataset):
 
 
 class CIFAR100(dataset.ArrayDataset):
-    name: str = "cifar100"
+    data_name: str = "cifar100"
     num_classes: int = 100
     image_size: int = 32
     mean = [x / 255 for x in [129.3, 124.1, 112.4]]
@@ -19,7 +19,7 @@ class CIFAR100(dataset.ArrayDataset):
 
 
 class STL10(dataset.ArrayDataset):
-    name: str = "stl10"
+    data_name: str = "stl10"
     num_classes: int = 10
     image_size: int = 96
     ulb_split: str | None = "unlabelled"
