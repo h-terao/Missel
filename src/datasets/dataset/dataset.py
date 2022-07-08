@@ -5,6 +5,7 @@ import math
 
 import jax.random as jr
 import tensorflow as tf
+import tensorflow_datasets as tfds
 
 from . import data_utils
 

@@ -1,82 +1,52 @@
 from __future__ import annotations
-import jax.numpy as jnp
-import jax.random as jr
-import chex
-import hub
+from typing import NamedTuple
+
+import numpy as np
+import tensorflow_datasets as tfds
 
 
-def get_data(path: str, download: bool) -> hub.Dataset:
-    """Returns a hub dataset.
+class Arrays(NamedTuple):
+    images: np.ndarray
+    labels: np.ndarray
+    indices: np.ndarray
 
-    Args:
-        path (str): Dataset path.
-        download (bool):
-            If True, download the specified dataset in `HUB_DOWNLOAD_PATH`.
-    """
-    if not download:
-        return hub.dataset(path, access_method="stream")
-    else:
-        try:
-            return hub.dataset(path, access_method="local")
-        except:  # noqa: E722
-            return hub.dataset(path, access_method="download")
+    def __getitem__(self, index):
+        return Arrays(self.images[index], self.labels[index], self.indices[index])
+
+    def __len__(self) -> int:
+        return len(self.images)
+
+    def to_dict(self):
+        return {
+            "images": self.images,
+            "labels": self.labels,
+            "indices": self.indices,
+        }
 
 
-def split_data(
-    rng: chex.Array,
-    data: hub.Dataset,
-    num_labels: int | float,
-) -> tuple[hub.Dataset, hub.Dataset]:
-    """Split dataset into two sub datasets.
+def load_arrays(data_name, split: str):
+    images, labels = tfds.as_numpy(tfds.load(data_name, split=split, as_supervised=True))
+    indices = np.arange(len(labels))
+    return images, labels, indices
 
-    Args:
-        rng: PRNG key.
-        data: Dataset to split.
-        num_labels (int | float): Number or ratio of labeled samples per label.
-    """
-    labels = data["labels"].numpy().flatten()
-    unique_labels, counts = jnp.unique(labels, return_counts=True)
 
+def split_data(arrays: Arrays, num_labels: int | float, seed: int = 0):
+    rng = np.random.RandomState(seed)
+    labels = arrays.labels
+    unique_labels, counts = np.unique(labels, return_counts=True)
+    num_classes = len(unique_labels)
     lb_inds, ulb_inds = [], []
     for label, count in zip(unique_labels, counts):
-        rng, shuffle_rng = jr.split(rng)
-        (index,) = jnp.where(labels == label)
-        index = jr.permutation(shuffle_rng, index)
-
+        index = np.where(labels == label)[0]
+        index = rng.permutation(index)
         if num_labels >= 1.0:
-            thr = int(num_labels)
+            thr = int(num_labels // num_classes)
         elif num_labels >= 0:
             thr = int(num_labels * count)
         else:
-            thr = count
-
+            thr = -1
         lb_inds.append(index[:thr])
         ulb_inds.append(index[thr:])
-
-    lb_rng, ulb_rng = jr.split(rng)
-    lb_inds = jr.permutation(lb_rng, jnp.concatenate(lb_inds))
-    ulb_inds = jr.permutation(ulb_rng, jnp.concatenate(ulb_inds))
-
-    return data[lb_inds.tolist()], data[ulb_inds.tolist()]
-
-
-def estimate_label_dist(lb_data: hub.Dataset) -> chex.Array:
-    """Estimate the label distribution from labeled data.
-
-    Args:
-        lb_data (hub.Dataset): Labeled dataset to estimate the label distribution.
-
-    Returns:
-        [N] array that an i-th element represents i-th label's ratio.
-    """
-    labels = lb_data["labels"].numpy().flatten()
-    labels = jnp.sort(labels)
-
-    _, counts = jnp.unique(labels, return_counts=True)
-    return counts / len(labels)
-
-
-def get_num_classes(data):
-    labels = data["labels"].numpy().flatten()
-    unique_labels = jnp.unique(labels)
-    return len(unique_labels)
+    lb_inds = rng.permutation(np.concatenate(lb_inds))
+    ulb_inds = rng.permutation(np.concatenate(ulb_inds))
+    return arrays[lb_inds], arrays[ulb_inds]
