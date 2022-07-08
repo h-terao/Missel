@@ -25,7 +25,7 @@ class Arrays(NamedTuple):
 
 
 def load_arrays(data_name, split: str):
-    arrays = tfds.as_numpy(tfds.load(data_name, split=split, batch_size=1, as_supervised=True))
+    arrays = tfds.as_numpy(tfds.load(data_name, split=split, batch_size=-1, as_supervised=True))
     if len(arrays) == 1:
         images = arrays[0]
         labels = np.zeros(len(images))
