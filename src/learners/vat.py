@@ -77,7 +77,7 @@ class VAT(Learner):
         """
 
         def grad_fn(z: chex.Array):
-            logits_yhat = apply_fn(y + z)
+            logits_yhat, _ = apply_fn(y + z)
             loss = F.kl_div(logits_y, nn.log_softmax(logits_yhat)).mean()
             return loss
 
@@ -91,7 +91,7 @@ class VAT(Learner):
             return z, _
 
         z = jr.normal(rng, y.shape, dtype=y.dtype)
-        z = jax.lax.scan(scan_fn, z, jnp.arange(self.num_iters))
+        z, _ = jax.lax.scan(scan_fn, z, jnp.arange(self.num_iters))
         yhat = y + self.vat_eps * normalize(z)
         logits_yhat = apply_fn(yhat)
 
