@@ -140,6 +140,8 @@ class VAT(Learner):
         vat_loss = self.vat_loss(rng, y, logits_y, apply_fn)
         entmin_loss = F.entropy(logits_y).mean()
 
+        print("LOGITS_X:", logits_x.shape, "ONEHOT:", lx.shape)
+
         loss = ce_loss + self.lambda_y * warmup * vat_loss + self.lambda_entmin * entmin_loss
         updates = {"model_state": new_model_state, "rng": new_rng}
         scalars = {
@@ -148,7 +150,7 @@ class VAT(Learner):
             "vat_loss": vat_loss,
             "entmin_loss": entmin_loss,
             "warmup": warmup,
-            "acc1": F.accuracy(logits_x, lx, k=1),
-            "acc5": F.accuracy(logits_x, lx, k=5),
+            "acc1": F.accuracy(logits_x, lx, k=1).mean(),
+            "acc5": F.accuracy(logits_x, lx, k=5).mean(),
         }
         return loss, (updates, scalars)
