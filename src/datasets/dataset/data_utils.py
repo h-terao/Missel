@@ -30,10 +30,9 @@ def load_arrays(data_name, split: str):
         images = arrays[0]
         labels = np.zeros(len(images))
     else:
-        print("LEN ARRAYS:", len(arrays))
         images, labels = arrays
     indices = np.arange(len(labels))
-    return images, labels, indices
+    return Arrays(images, labels, indices)
 
 
 def split_data(arrays: Arrays, num_labels: int | float, seed: int = 0):
