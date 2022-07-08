@@ -79,7 +79,7 @@ class VAT(Learner):
         @jax.grad
         def grad_fn(z: chex.Array):
             logits_yhat, _ = apply_fn(y + z)
-            loss = F.kl_div(logits_y, nn.log_softmax(logits_yhat)).mean()
+            loss = F.kl_div(logits_y, nn.log_softmax(logits_yhat), log_target=True).mean()
             return loss
 
         def normalize(x: chex.Array):
@@ -96,7 +96,7 @@ class VAT(Learner):
         yhat = y + self.vat_eps * normalize(z)
         logits_yhat = apply_fn(yhat)
 
-        vat_loss = F.kl_div(logits_yhat, nn.log_softmax(logits_y), log_targets=True).mean()
+        vat_loss = F.kl_div(logits_yhat, nn.log_softmax(logits_y), log_target=True).mean()
         return vat_loss
 
     def loss_fn(self, params: core.FrozenDict, train_state: TrainState, batch: Batch):
