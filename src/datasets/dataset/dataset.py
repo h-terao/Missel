@@ -54,6 +54,7 @@ class Dataset:
         cache_on_memory: bool = True,
         cache_on_disk: bool = False,
         download: bool = False,
+        debug: bool = False,
     ) -> None:
         self.data_dir = data_dir
         self.lb_batch_size = batch_size
@@ -63,6 +64,7 @@ class Dataset:
         self.shuffle_batches = shuffle_batches if shuffle_batches > 0 else math.inf
         self.cache_on_memory = cache_on_memory
         self.cache_on_disk = cache_on_disk
+        self.debug = debug
 
         if self.cache_on_disk:
             self.cache_dir = os.path.join(data_dir, "caches", f"{self.name}.{num_labels}.{seed}")
@@ -77,8 +79,11 @@ class Dataset:
             lb_data = data_utils.get_data(self.lb_path, download)
             lb_data, _ = data_utils.split_data(jr.PRNGKey(seed), lb_data, num_labels)
             ulb_data = data_utils.get_data(self.ulb_path, download)
-
         test_data = data_utils.get_data(self.test_path, download)
+        if debug:
+            lb_data = lb_data[: min(100, len(lb_data))]
+            ulb_data = ulb_data[: min(100, len(ulb_data))]
+            test_data = test_data[: min(100, len(test_data))]
 
         self.lb_data = lb_data
         self.ulb_data = ulb_data
