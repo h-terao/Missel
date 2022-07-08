@@ -82,8 +82,8 @@ class VAT(Learner):
             return loss
 
         def normalize(x: chex.Array):
-            x /= jnp.linalg.norm(x, ord=2, axis=(-1, -2, -3), keepdims=True) + 1e-6
-            return x
+            norm = jnp.sqrt(jnp.square(x).sum(axis=(-1, -2, -3), keepdims=True)) + 1e-6
+            return x / norm
 
         def scan_fn(z: chex.Array, _):
             z = self.xi * normalize(z)
