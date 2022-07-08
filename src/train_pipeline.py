@@ -43,7 +43,7 @@ def train(config: DictConfig):
                 and conf.get("entities", None) is None
             ):
                 entries = ["epoch"]
-                entries += [f"train/{x}" for x in learner.default_metrics]
+                entries += [f"train/{x}" for x in learner.default_entries]
                 entries += ["val/loss", "val/acc1", "val/acc5", "val/EMA/acc1"]
                 conf["entries"] = entries
 
