@@ -9,6 +9,6 @@ include_lb_to_ulb: True
 shuffle_batches: -1
 seed: ${seed}
 cache_on_memory: True
-# cache_on_disk: True
+cache_on_disk: False
 
 debug: False
