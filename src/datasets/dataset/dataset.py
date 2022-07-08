@@ -98,7 +98,7 @@ class Dataset:
             self.data_meta["ulb_examples"] += len(lb_data)
         self.data_meta["ulb_batch_size"] = self.ulb_batch_size
         self.data_meta["test_examples"] = len(test_data)
-        self.data_meta["test_batch_size"] = self.test_batch_size
+        self.data_meta["test_steps_per_epoch"] = math.ceil(len(test_data) / self.test_batch_size)
         self.data_meta["dist"] = data_utils.estimate_label_dist(lb_data)
         self.data_meta["num_classes"] = data_utils.get_num_classes(test_data)
 
