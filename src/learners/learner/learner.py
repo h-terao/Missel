@@ -1,5 +1,4 @@
 from __future__ import annotations
-from email.mime import base
 from typing import Any, Dict, Type
 import functools
 
@@ -59,7 +58,6 @@ class Learner:
             num_classes=self.data_meta["num_classes"],
             mean=self.data_meta["mean"],
             std=self.data_meta["std"],
-            precision=self.precision,
         )
 
         @functools.partial(jax.jit, backend="cpu")
