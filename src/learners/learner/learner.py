@@ -26,12 +26,11 @@ class Learner(abc.ABC):
     """Abstract class to implement SSL methods."""
 
     train_steps: int
-
     base_model: linen.Module
     tx: optax.GradientTransformation
-    label_smoothing: float
-    momentum_ema: float
     data_meta: dict[str, Any] = field(default_factory=dict)
+    label_smoothing: float = 0.0
+    momentum_ema: float = 0.999
     precision: str = "fp32"
 
     train_state_cls: Type[struct.PyTreeNode] = TrainState
