@@ -1,4 +1,4 @@
-_target_: src.nets.ResNet50
+_target_: src.models.ResNet50
 
 block_type: bottleneck
 stage_sizes: [3, 4, 6, 3]
