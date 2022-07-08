@@ -110,7 +110,7 @@ class Dataset:
         labels = tf.reshape(labels, shape=[-1])
         return {
             "indices": index,
-            "images": images,
+            "inputs": images,
             "labels": labels,
         }
 
@@ -164,4 +164,5 @@ class Dataset:
         if self.cache_on_memory:
             test_data = test_data.cache()
         test_data = test_data.batch(self.test_batch_size, num_parallel_calls=tf.data.AUTOTUNE)
+        test_data = test_data.repeat()
         return test_data.as_numpy_iterator()
