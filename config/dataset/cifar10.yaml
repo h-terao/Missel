@@ -1,6 +1,5 @@
 _target_: src.datasets.CIFAR10
 
-data_dir: ${data_dir}
 num_labels: ???
 batch_size: 64
 uratio: 1
