@@ -97,7 +97,7 @@ class VAT(Learner):
         logits_yhat, _ = apply_fn(yhat)
 
         vat_loss = F.kl_div(
-            jax.lax.stop_gradient(nn.log_softmax(logits_y)), logits_yhat, log_target=True
+            jax.lax.stop_gradient(logits_y), nn.log_softmax(logits_yhat), log_target=True
         ).mean()
         return vat_loss
 
