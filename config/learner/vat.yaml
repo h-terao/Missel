@@ -8,7 +8,7 @@ momentum_ema: 0.999
 precision: ${precision}
 
 # Method specific parameters
-lambda_y: 1.0
+lambda_y: 0.3
 lambda_entmin: 0.0
 unsup_warmup_pos: 0.4
 vat_eps: 6
