@@ -81,6 +81,7 @@ class Dataset:
             ulb_data = data_utils.get_data(self.ulb_path, download)
         test_data = data_utils.get_data(self.test_path, download)
         if debug:
+            self.cache_on_disk = False
             lb_data = lb_data[: min(100, len(lb_data))]
             ulb_data = ulb_data[: min(100, len(ulb_data))]
             test_data = test_data[: min(100, len(test_data))]
