@@ -25,13 +25,13 @@ Batch = Dict[str, chex.Array]
 class Learner(abc.ABC):
     """Abstract class to implement SSL methods."""
 
-    data_meta: dict[str, Any] = field(default_factory=dict)
     train_steps: int
 
     base_model: linen.Module
     tx: optax.GradientTransformation
     label_smoothing: float
     momentum_ema: float
+    data_meta: dict[str, Any] = field(default_factory=dict)
     precision: str = "fp32"
 
     train_state_cls: Type[struct.PyTreeNode] = TrainState
