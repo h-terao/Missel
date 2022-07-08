@@ -18,7 +18,7 @@ class Arrays(NamedTuple):
 
     def to_dict(self):
         return {
-            "images": self.images,
+            "inputs": self.images,
             "labels": self.labels,
             "indices": self.indices,
         }
