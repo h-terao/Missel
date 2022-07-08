@@ -94,7 +94,7 @@ class VAT(Learner):
         z = jr.normal(rng, y.shape, dtype=y.dtype)
         z, _ = jax.lax.scan(scan_fn, z, jnp.arange(self.num_iters))
         yhat = y + self.vat_eps * normalize(z)
-        logits_yhat = apply_fn(yhat)
+        logits_yhat, _ = apply_fn(yhat)
 
         vat_loss = F.kl_div(logits_yhat, nn.log_softmax(logits_y), log_target=True).mean()
         return vat_loss
