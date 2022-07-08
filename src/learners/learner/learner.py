@@ -1,7 +1,5 @@
 from __future__ import annotations
 from typing import Any, Dict, Type
-import abc
-from dataclasses import dataclass, field
 import functools
 
 import jax
@@ -21,30 +19,28 @@ Updates = Dict[str, Any]
 Batch = Dict[str, chex.Array]
 
 
-@dataclass
-class Learner(abc.ABC):
+class Learner(struct.PyTreeNode):
     """Abstract class to implement SSL methods."""
 
     train_steps: int
-    base_model: linen.Module
-    tx: optax.GradientTransformation
-    data_meta: dict[str, Any] = field(default_factory=dict)
+    base_model: linen.Module = struct.field(False)
+    data_meta: dict[str, Any] = struct.field(False)
+    tx: optax.GradientTransformation = struct.field(False)
     label_smoothing: float = 0.0
     momentum_ema: float = 0.999
     precision: str = "fp32"
 
-    train_state_cls: Type[struct.PyTreeNode] = TrainState
-    classifier_cls: Type[linen.Module] = Classifier
-    default_entries: list[str] = field(default_factory=list)
+    train_state_cls: Type[struct.PyTreeNode] = struct.field(False, default=TrainState)
+    classifier_cls: Type[linen.Module] = struct.field(False, Classifier)
+    default_entries: list[str] = struct.field(default_factory=list)
 
     def __post_init__(self) -> None:
         assert self.precision in ["fp16", "fp32", "bf16"]
 
-    @abc.abstractmethod
     def loss_fn(
         self, params: core.FrozenDict, train_state: TrainState, batch: Batch
     ) -> tuple[chex.Array, tuple[Updates, Scalars]]:
-        pass
+        raise NotImplementedError("Implement loss_fn!")
 
     def init_fn(self, rng: chex.PRNGKey, batch: Batch, **kwargs) -> TrainState:
         """Initialize train_state."""
