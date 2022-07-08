@@ -25,7 +25,7 @@ Batch = Dict[str, chex.Array]
 class Learner(abc.ABC):
     """Abstract class to implement SSL methods."""
 
-    data_meta = field(default_factory=dict)
+    data_meta: dict[str, Any] = field(default_factory=dict)
     train_steps: int
 
     base_model: linen.Module

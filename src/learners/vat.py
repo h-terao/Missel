@@ -23,8 +23,7 @@ class VAT(Learner):
         tx (GradientTransformation): Optax optimizer.
         label_smoothing (float): Label smoothing parameter.
         momentum_ema (float): Momentum value to update EMA model.
-        precision (str): Precision. fp16, bf16 or fp32.
-
+        precision (str): Precision. fp16, bf16 and fp32 are supported.
         lambda_y (float): Coefficient of the unsupervised loss.
         lambda_entmin (float): Coefficient of the entropy loss.
         unsup_warmup_pos (float): Warmup position of epochs.
@@ -37,15 +36,25 @@ class VAT(Learner):
     lambda_entmin: float = 0.0
     unsup_warmup_pos: float = 0.4
     vat_eps: float = 6
-
     xi: float = 1e-6
     num_iters: int = 1
-
     default_entries: list[str] = ["warmup", "loss", "ce_loss", "vat_loss", "entmin_loss", "acc1"]
 
     def vat_loss(
         self, rng: chex.PRNGKey, y: chex.Array, logits_y: chex.Array, apply_fn: Callable
     ) -> chex.Array:
+        """Compute VAT loss.
+
+        Args:
+            rng (Array): A PRNG key.
+            y (Array): Unlabeled images.
+            logits_y (Array): Logits computed from y.
+            apply_fn (Callable): Forward function of the model.
+
+        Returns:
+            VAT loss.
+        """
+
         def grad_fn(z: chex.Array):
             logits_yhat = apply_fn(y + z)
             loss = F.kl_div(logits_y, nn.log_softmax(logits_yhat)).mean()
@@ -69,6 +78,16 @@ class VAT(Learner):
         return vat_loss
 
     def loss_fn(self, params: core.FrozenDict, train_state: TrainState, batch: Batch):
+        """Compute loss of the VAT training.
+
+        Args:
+            params (FrozenDict): Model parameters.
+            train_state (TrainState): Training state.
+            batch (Batch): Batch.
+
+        Returns:
+            Total loss, updates and metrics.
+        """
         rng, new_rng = jr.split(train_state.rng)
         rng = jr.fold_in(rng, jax.lax.axis_index("batch"))
         warmup = jnp.clip(train_state.step / self.train_steps / self.unsup_warmup_pos, 0, 1)
@@ -99,11 +118,8 @@ class VAT(Learner):
         vat_loss = self.vat_loss(rng, y, logits_y, apply_fn)
         entmin_loss = F.entropy(logits_y).mean()
 
-        loss = ce_loss + self.lambda_y * warmup * vat_loss + self.lambda_entmin + entmin_loss
-        updates = {
-            "model_state": new_model_state,
-            "rng": new_rng,
-        }
+        loss = ce_loss + self.lambda_y * warmup * vat_loss + self.lambda_entmin * entmin_loss
+        updates = {"model_state": new_model_state, "rng": new_rng}
         scalars = {
             "loss": loss,
             "ce_loss": ce_loss,
@@ -113,5 +129,4 @@ class VAT(Learner):
             "acc1": F.accuracy(logits_x, lx, k=1),
             "acc5": F.accuracy(logits_x, lx, k=5),
         }
-
         return loss, (updates, scalars)
