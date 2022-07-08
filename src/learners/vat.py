@@ -76,6 +76,7 @@ class VAT(Learner):
             VAT loss.
         """
 
+        @jax.grad
         def grad_fn(z: chex.Array):
             logits_yhat, _ = apply_fn(y + z)
             loss = F.kl_div(logits_y, nn.log_softmax(logits_yhat)).mean()
