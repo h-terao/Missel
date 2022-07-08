@@ -145,7 +145,7 @@ class Learner:
             variables = {"params": params, **train_state.model_state}
             logits = train_state.apply_fn(variables, x, train=False)["logits"]
             scalars = {
-                f"{prefix}loss": F.cross_entropy(logits, lx, self.label_smoothing),
+                f"{prefix}loss": F.cross_entropy(logits, lx),
                 f"{prefix}acc1": F.accuracy(logits, lx, k=1),
                 f"{prefix}acc5": F.accuracy(logits, lx, k=5),
             }
