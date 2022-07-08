@@ -107,7 +107,7 @@ class Dataset:
         labels = item["labels"]
         if self.preprocess is not None:
             images = self.preprocess(images)
-        labels = tf.reshape(labels, shape=[-1])
+        labels = tf.reshape(labels, shape=())
         return {
             "indices": index,
             "inputs": images,
