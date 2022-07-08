@@ -1,4 +1,5 @@
 from __future__ import annotations
+from email.mime import base
 from typing import Any, Dict, Type
 import functools
 
@@ -19,23 +20,31 @@ Updates = Dict[str, Any]
 Batch = Dict[str, chex.Array]
 
 
-class Learner(struct.PyTreeNode):
+class Learner:
     """Abstract class to implement SSL methods."""
 
-    train_steps: int
-    base_model: linen.Module = struct.field(False)
-    data_meta: dict[str, Any] = struct.field(False)
-    tx: optax.GradientTransformation = struct.field(False)
-    label_smoothing: float = 0.0
-    momentum_ema: float = 0.999
-    precision: str = "fp32"
+    train_state_cls: Type[struct.PyTreeNode] = TrainState
+    classifier_cls: Type[linen.Module] = Classifier
+    default_entries: list[str] = []
 
-    train_state_cls: Type[struct.PyTreeNode] = struct.field(False, default=TrainState)
-    classifier_cls: Type[linen.Module] = struct.field(False, Classifier)
-    default_entries: list[str] = struct.field(default_factory=list)
-
-    def __post_init__(self) -> None:
-        assert self.precision in ["fp16", "fp32", "bf16"]
+    def __init__(
+        self,
+        data_meta: dict,
+        train_steps: int,
+        base_model: linen.Module,
+        tx: optax.GradientTransformation,
+        label_smoothing: float = 0.0,
+        momentum_ema: float = 0.999,
+        precision: str = "fp32",
+    ) -> None:
+        assert precision in ["fp16", "fp32", "bf16"]
+        self.data_meta = data_meta
+        self.train_steps = train_steps
+        self.base_model = base_model
+        self.tx = tx
+        self.label_smoothing = label_smoothing
+        self.momentum_ema = momentum_ema
+        self.precision = precision
 
     def loss_fn(
         self, params: core.FrozenDict, train_state: TrainState, batch: Batch

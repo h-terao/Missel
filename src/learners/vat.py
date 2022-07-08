@@ -5,7 +5,8 @@ import jax
 import jax.numpy as jnp
 import jax.random as jr
 from jax import nn
-from flax import core
+from flax import linen, core
+import optax
 import chex
 
 from .learner import Learner, TrainState, functional as F, transforms as T
@@ -32,13 +33,33 @@ class VAT(Learner):
         num_iters (int): Number of steps to update the adversarial noises.
     """
 
-    lambda_y: float = 1.0
-    lambda_entmin: float = 0.0
-    unsup_warmup_pos: float = 0.4
-    vat_eps: float = 6
-    xi: float = 1e-6
-    num_iters: int = 1
     default_entries: list[str] = ["warmup", "loss", "ce_loss", "vat_loss", "entmin_loss", "acc1"]
+
+    def __init__(
+        self,
+        data_meta: dict,
+        train_steps: int,
+        base_model: linen.Module,
+        tx: optax.GradientTransformation,
+        lambda_y: float = 1.0,
+        lambda_entmin: float = 0.0,
+        unsup_warmup_pos: float = 0.4,
+        vat_eps: float = 6,
+        xi: float = 1e-6,
+        num_iters: int = 1,
+        label_smoothing: float = 0,
+        momentum_ema: float = 0.999,
+        precision: str = "fp32",
+    ) -> None:
+        super().__init__(
+            data_meta, train_steps, base_model, tx, label_smoothing, momentum_ema, precision
+        )
+        self.lambda_y = lambda_y
+        self.lambda_entmin = lambda_entmin
+        self.unsup_warmup_pos = unsup_warmup_pos
+        self.vat_eps = vat_eps
+        self.xi = xi
+        self.num_iters = num_iters
 
     def vat_loss(
         self, rng: chex.PRNGKey, y: chex.Array, logits_y: chex.Array, apply_fn: Callable
