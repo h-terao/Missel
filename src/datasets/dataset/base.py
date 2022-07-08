@@ -62,3 +62,4 @@ class Base:
         data_meta["test_steps_per_epoch"] = math.ceil(
             data_meta["num_test_examples"] / self.test_batch_size
         )
+        return data_meta
