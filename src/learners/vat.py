@@ -140,8 +140,6 @@ class VAT(Learner):
         vat_loss = self.vat_loss(rng, y, logits_y, apply_fn)
         entmin_loss = F.entropy(logits_y).mean()
 
-        print("LOGITS_X:", logits_x.shape, "ONEHOT:", lx.shape)
-
         loss = ce_loss + self.lambda_y * warmup * vat_loss + self.lambda_entmin * entmin_loss
         updates = {"model_state": new_model_state, "rng": new_rng}
         scalars = {

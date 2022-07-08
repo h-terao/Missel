@@ -118,8 +118,11 @@ class Dataset:
         num_lb_examples = len(self.lb_data)
         num_ulb_examples = len(self.ulb_data)
 
-        lb_data: tf.data.Dataset = self.lb_data.tensorflow()
-        ulb_data: tf.data.Dataset = self.ulb_data.tensorflow()
+        lb_data = {"images": self.lb_data.images.numpy(), "labels": self.lb_data.labels.numpy()}
+        ulb_data = {"images": self.ulb_data.images.numpy(), "labels": self.ulb_data.labels.numpy()}
+
+        lb_data = tf.data.Dataset.from_tensor_slices(lb_data)
+        ulb_data = tf.data.Dataset.from_tensor_slices(ulb_data)
         if self.include_lb_to_ulb:
             ulb_data = lb_data.concatenate(ulb_data)
             num_ulb_examples += num_lb_examples
@@ -156,7 +159,11 @@ class Dataset:
         return train_data.as_numpy_iterator()
 
     def test_loader(self):
-        test_data: tf.data.Dataset = self.test_data.tensorflow()
+        test_data = {
+            "images": self.test_data.images.numpy(),
+            "labels": self.test_data.labels.numpy(),
+        }
+        test_data: tf.data.Dataset = tf.data.Dataset.from_tensor_slices(test_data)
         test_data = test_data.enumerate()
         test_data = test_data.map(self.map_fn, num_parallel_calls=tf.data.AUTOTUNE)
         if self.cache_on_disk:
