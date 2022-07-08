@@ -83,7 +83,11 @@ class Learner:
             dynamic_scale=dynamic_scale,
             **kwargs,
         )
-        return train_state
+
+        # TODO: Add model information such as GFLOPs, #params, ...
+        model_info = dict()
+
+        return train_state, model_info
 
     def train_fn(self, train_state: TrainState, batch: Batch) -> tuple[TrainState, Scalars]:
         """Update training state by the given mini-batch data.
