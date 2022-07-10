@@ -23,6 +23,8 @@ Currecntly, missel supports the following algorithms:
 
 ## Results
 
+- MeanTeacher@cifar10.4000: 96.1
+
 # Getting Started
 
 ## Requirements
