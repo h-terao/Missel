@@ -1,4 +1,4 @@
-_target_: src.learners.VAT
+_target_: src.learners.MeanTeacher
 
 # Common parameters
 base_model: ${model}
