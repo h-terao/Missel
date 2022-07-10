@@ -4,9 +4,9 @@
 
 </div>
 
-<img src="./figures/logo.png"  width = "100" height = "100" align='right' />
+<img src="./figures/logo.png"  width = "100" height = "100" align='right'/>
 
-A collection of semi-supervised learning algorithms implemented by JAX/Flax.
+A collection of semi-supervised learning algorithms implemented by JAX/Flax.<br>
 "Missel" is an anagram of SemiSL (SEMI-Supervised Learning).
 
 # Introduction
