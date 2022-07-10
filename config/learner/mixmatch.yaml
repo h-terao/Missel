@@ -1,0 +1,13 @@
+_target_: src.learners.MixMatch
+
+# Common parameters
+base_model: ${model}
+tx: ${optimizer}
+label_smoothing: 0
+momentum_ema: 0.999
+precision: ${precision}
+
+# Method specific parameters
+lambda_y: 100
+T: 0.5
+alpha: 0.5

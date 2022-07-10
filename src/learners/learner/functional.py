@@ -3,7 +3,7 @@ from __future__ import annotations
 import jax.numpy as jnp
 from jax import nn
 import chex
-from hazuchi.functional import one_hot, cross_entropy, accuracy
+from hazuchi.functional import one_hot, cross_entropy, accuracy, permutate
 
 __all__ = [
     "one_hot",
@@ -12,6 +12,7 @@ __all__ = [
     "entropy",
     "absolute_error",
     "squared_error",
+    "permutate",
 ]
 
 

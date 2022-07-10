@@ -3,6 +3,7 @@ from typing import Any, Dict, Type
 import functools
 
 import jax
+import jax.numpy as jnp
 import jax.random as jr
 from flax import linen, struct, core
 from flax.optim.dynamic_scale import DynamicScale
@@ -20,11 +21,20 @@ Batch = Dict[str, chex.Array]
 
 
 class Learner:
-    """Abstract class to implement SSL methods."""
+    """Abstract class to implement SSL methods.
+
+    Attribute:
+        train_state_cls: TrainState class.
+        classifier_cls: Classifier class.
+        default_entries: Entries to log on console.
+        always_updates: Parameters to update everytime
+            even when infinite grads are found. (Only used when precision=fp16.)
+    """
 
     train_state_cls: Type[struct.PyTreeNode] = TrainState
     classifier_cls: Type[linen.Module] = Classifier
     default_entries: list[str] = []
+    always_updates: list[str] = []
 
     def __init__(
         self,
@@ -115,10 +125,25 @@ class Learner:
 
         new_train_state = train_state.apply_gradients(
             grads=grads,
-            is_fin=is_fin,
             dynamic_scale=dynamic_scale,
             **updates,
         )
+
+        if dynamic_scale:
+            # Skip to update most variables in train_state if some gradients are infinite.
+            # step, rng and **always_updates are always updated.
+            f = functools.partial(jnp.where, is_fin)
+            overrides = dict(
+                params=jax.tree_map(f, new_train_state.params, train_state.params),
+                params_ema=jax.tree_map(f, new_train_state.params_ema, train_state.params_ema),
+                opt_state=jax.tree_map(f, new_train_state.opt_state, train_state.opt_state),
+                **{
+                    k: jax.tree_map(f, getattr(new_train_state, k), getattr(train_state, k))
+                    for k in updates
+                    if k not in self.always_updates
+                },
+            )
+            new_train_state = new_train_state.replace(**overrides)
 
         return new_train_state, scalars
 

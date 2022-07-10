@@ -1,9 +1,7 @@
 from __future__ import annotations
-import functools
 from typing import Any, Callable
 
 import jax
-import jax.numpy as jnp
 from flax import struct, core
 from flax.optim.dynamic_scale import DynamicScale
 
@@ -23,7 +21,7 @@ class TrainState(struct.PyTreeNode):
     dynamic_scale: DynamicScale | None = None
     momentum_ema: float = 0.999
 
-    def apply_gradients(self, *, grads, is_fin: bool = True, **kwargs) -> TrainState:
+    def apply_gradients(self, *, grads, **kwargs) -> TrainState:
         """
         Args:
             grads (FrozenDict): Gradients.
@@ -41,12 +39,6 @@ class TrainState(struct.PyTreeNode):
             self.params_ema,
             new_params,
         )
-        if self.dynamic_scale:
-            f = functools.partial(jnp.where, is_fin)
-            new_opt_state = jax.tree_map(f, new_opt_state, self.opt_state)
-            new_params = jax.tree_map(f, new_params, self.params)
-            new_params_ema = jax.tree_map(f, new_params_ema, self.params_ema)
-
         return self.replace(
             step=self.step + 1,
             params=new_params,
