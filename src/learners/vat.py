@@ -79,12 +79,10 @@ class VAT(Learner):
         @jax.grad
         def grad_fn(z: chex.Array):
             logits_yhat, _ = apply_fn(y + z)
-            loss = F.kl_div(logits_y, logits_yhat).mean()
-            return loss
+            return F.kl_div(logits_y, logits_yhat).mean()
 
         def normalize(x: chex.Array):
-            norm = jnp.sqrt(jnp.square(x).sum(axis=(-1, -2, -3), keepdims=True) + 1e-16)
-            return x / norm
+            return x / jnp.sqrt(jnp.square(x).sum(axis=(-1, -2, -3), keepdims=True) + 1e-16)
 
         def scan_fn(z: chex.Array, _):
             z = self.xi * normalize(z)

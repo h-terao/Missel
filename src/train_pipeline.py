@@ -44,7 +44,14 @@ def train(config: DictConfig):
             ):
                 entries = ["epoch"]
                 entries += [f"train/{x}" for x in learner.default_entries]
-                entries += ["val/loss", "val/acc1", "val/acc5", "val/EMA/acc1", "elapsed_time"]
+                entries += [
+                    "val/loss",
+                    "val/acc1",
+                    "val/acc5",
+                    "val/EMA/acc1",
+                    "val/best_acc1",
+                    "elapsed_time",
+                ]
                 conf["entries"] = entries
             callbacks[key] = hydra.utils.instantiate(conf)
 

@@ -1,11 +1,26 @@
-# Selamix
+<div align="center">
 
-Selamix is a collection of semi-supervised learning methods implemented by JAX/Flax.
+# Missel
 
+</div>
 
-## Supported methods
+A collection of semi-supervised learning algorithms implemented by JAX/Flax.
+"Missel" is an anagram of SemiSL (SEMI-Supervised Learning).
+
+# Introduction
+
+Currecntly, missel supports the following algorithms:
 
 - Virtual Adversarial Training
+
+Datasets: cifar10, cifar100, ...
+
+## Results
+
+# Getting Started
+
+## Requirements
+- Python >= 3.7
 
 ## Examples
 
@@ -18,8 +33,3 @@ See help to check other parameters:
 ```bash
 python train.py --help
 ```
-
-## Tools
-
-Selamix contain some useful tools.
-1.

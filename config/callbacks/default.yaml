@@ -1,6 +1,6 @@
 # comet_logger:
 #   _target_: hazuchi.callbacks.CometLogger
-#   project: efnet-flax
+#   project: missel
 #   name: ${name}
 
 json_logger:
@@ -9,6 +9,12 @@ json_logger:
 console_logger:
   _target_: hazuchi.callbacks.PrintMetrics
   entries: null
+
+best_monitor:
+  _target_: hazuchi.callbacks.BestValue
+  monitor: val/EMA/acc1
+  name: val/best_acc1
+  mode: max
 
 timer:
   _target_: hazuchi.callbacks.Timer
