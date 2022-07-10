@@ -9,13 +9,18 @@
 A collection of semi-supervised learning (SemiSL) algorithms implemented by JAX/Flax.<br>
 "Missel" is an anagram of SemiSL.
 
-# Introduction
+# Features
+
+Missel is a collection of SemiSL algorithms.
+This library has the following features:
+
+- Efficient training by JIT.
+- Multi-GPU support without any changes.
+- Easy to customize.
 
 Currecntly, missel supports the following algorithms:
-
 - Virtual Adversarial Training
-
-Datasets: cifar10, cifar100, ...
+- MeanTeacher
 
 ## Results
 
