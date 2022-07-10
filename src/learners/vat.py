@@ -4,7 +4,6 @@ from typing import Any, Callable
 import jax
 import jax.numpy as jnp
 import jax.random as jr
-from jax import nn
 from flax import linen, core
 import optax
 import chex
@@ -75,15 +74,16 @@ class VAT(Learner):
         Returns:
             VAT loss.
         """
+        logits_y = jax.lax.stop_gradient(logits_y)
 
         @jax.grad
         def grad_fn(z: chex.Array):
             logits_yhat, _ = apply_fn(y + z)
-            loss = F.kl_div(logits_y, nn.log_softmax(logits_yhat), log_target=True).mean()
+            loss = F.kl_div(logits_y, logits_yhat).mean()
             return loss
 
         def normalize(x: chex.Array):
-            norm = jnp.sqrt(jnp.square(x).sum(axis=(-1, -2, -3), keepdims=True)) + 1e-6
+            norm = jnp.sqrt(jnp.square(x).sum(axis=(-1, -2, -3), keepdims=True) + 1e-16)
             return x / norm
 
         def scan_fn(z: chex.Array, _):
@@ -96,10 +96,7 @@ class VAT(Learner):
         yhat = jax.lax.stop_gradient(y + self.vat_eps * normalize(z))
         logits_yhat, _ = apply_fn(yhat)
 
-        vat_loss = F.kl_div(
-            jax.lax.stop_gradient(logits_y), nn.log_softmax(logits_yhat), log_target=True
-        ).mean()
-        return vat_loss
+        return F.kl_div(logits_y, logits_yhat).mean()
 
     def loss_fn(self, params: core.FrozenDict, train_state: TrainState, batch: Batch):
         """Compute loss of the VAT training.

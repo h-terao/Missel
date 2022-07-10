@@ -3,11 +3,10 @@ from __future__ import annotations
 import jax.numpy as jnp
 from jax import nn
 import chex
-from hazuchi.functional import one_hot, kl_div, cross_entropy, accuracy
+from hazuchi.functional import one_hot, cross_entropy, accuracy
 
 __all__ = [
     "one_hot",
-    "kl_div",
     "cross_entropy",
     "accuracy",
     "entropy",
@@ -36,3 +35,13 @@ def absolute_error(inputs: chex.Array, targets: chex.Array) -> chex.Array:
 def squared_error(inputs: chex.Array, targets: chex.Array) -> chex.Array:
     """Squared error."""
     return jnp.square(inputs - targets)
+
+
+def kl_div(q_logit, p_logit):
+    q = nn.softmax(q_logit)
+    logq = nn.log_softmax(q_logit)
+    logp = nn.log_softmax(p_logit)
+
+    qlogq = (q * logq).sum(axis=-1)
+    qlogp = (q * logp).sum(axis=-1)
+    return qlogq - qlogp
