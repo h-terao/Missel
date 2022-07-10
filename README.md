@@ -23,7 +23,7 @@ Currecntly, missel supports the following algorithms:
 
 ## Results
 
-- MeanTeacher@cifar10.4000: 96.1
+- MeanTeacher@cifar10.4000: 91.7
 
 # Getting Started
 
