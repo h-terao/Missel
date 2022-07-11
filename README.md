@@ -4,10 +4,12 @@
     <br>
 </p>
 
-<h1 align="center">Missel</h1>
-<h3 align="center">A Jax/Flax library for semi-supervised learning</h3>
+# Missel: A collection of semi-supervised learning methods implemented by Jax/Flax
 
-## Usage
+<!-- <h1 align="center">Missel</h1>
+<h3 align="center">A collection of semi-supervised learning implemented by JAX/Flax</h3> -->
+
+## Overview
 
 ### Supported SemiSL
 - MeanTeacher
