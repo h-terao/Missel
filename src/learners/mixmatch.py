@@ -99,7 +99,7 @@ class MixMatch(Learner):
         loss = sup_loss + self.lambda_y * warmup * unsup_loss
         updates = {"model_state": new_model_state, "rng": new_rng}
 
-        logits = apply_fn(x, params)
+        logits, _ = apply_fn(x, params)
         scalars = {
             "loss": loss,
             "sup_loss": sup_loss,
