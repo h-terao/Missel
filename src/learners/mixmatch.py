@@ -73,9 +73,10 @@ class MixMatch(Learner):
             batch["labeled"]["labels"], self.data_meta["num_classes"], self.label_smoothing
         )
 
-        logits_y1 = apply_fn(y1, params)[0]
-        logits_y2 = apply_fn(y2, params)[0]
+        logits_y1 = apply_fn(y1, train_state.params)[0]
+        logits_y2 = apply_fn(y2, train_state.params)[0]
         ly = (linen.softmax(logits_y1) + linen.softmax(logits_y2)) / 2
+        ly /= jnp.sum(ly, axis=-1, keepdims=True)
         ly = ly ** (1 / self.T)
         ly = jax.lax.stop_gradient(ly / jnp.sum(ly, axis=-1, keepdims=True))
 
@@ -99,7 +100,7 @@ class MixMatch(Learner):
         loss = sup_loss + self.lambda_y * warmup * unsup_loss
         updates = {"model_state": new_model_state, "rng": new_rng}
 
-        logits, _ = apply_fn(x, params)
+        logits, _ = apply_fn(x, train_state.params)
         scalars = {
             "loss": loss,
             "sup_loss": sup_loss,
