@@ -73,13 +73,16 @@ class MixMatch(Learner):
             batch["labeled"]["labels"], self.data_meta["num_classes"], self.label_smoothing
         )
 
-        logits_y1 = apply_fn(y1, train_state.params)[0]
-        logits_y2 = apply_fn(y2, train_state.params)[0]
+        logits_y1, _ = apply_fn(y1, train_state.params)
+        logits_y2, _ = apply_fn(y2, train_state.params)
+        # average
         ly = (linen.softmax(logits_y1) + linen.softmax(logits_y2)) / 2
         ly /= jnp.sum(ly, axis=-1, keepdims=True)
+        # sharpening
         ly = ly ** (1 / self.T)
-        ly = jax.lax.stop_gradient(ly / jnp.sum(ly, axis=-1, keepdims=True))
+        ly /= jnp.sum(ly, axis=-1, keepdims=True)
 
+        # mixup
         inputs = jnp.concatenate([x, y1, y2])
         labels = jnp.concatenate([lx, ly, ly])
 
@@ -95,7 +98,7 @@ class MixMatch(Learner):
         labels_x, labels_y = mixed_labels[: len(x)], mixed_labels[len(x) :]
 
         sup_loss = F.cross_entropy(logits_x, labels_x).mean()
-        unsup_loss = F.squared_error(logits_y, labels_y).mean()
+        unsup_loss = F.squared_error(linen.softmax(logits_y), labels_y).mean()
 
         loss = sup_loss + self.lambda_y * warmup * unsup_loss
         updates = {"model_state": new_model_state, "rng": new_rng}
