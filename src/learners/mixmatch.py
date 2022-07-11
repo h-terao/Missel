@@ -89,24 +89,24 @@ class MixMatch(Learner):
         inputs = jnp.concatenate([x, y1, y2])
         labels = jnp.concatenate([lx, ly, ly])
 
-        rng, index_rng, mixup_ratio_rng = jr.split(rng, 3)
+        index_rng, mixup_ratio_rng = jr.split(rng)
         index = jr.permutation(index_rng, len(inputs))
         lam = jr.beta(mixup_ratio_rng, self.alpha, self.alpha)
         lam = jnp.maximum(lam, 1 - lam)
         mixed_inputs = lam * inputs + (1 - lam) * inputs[index]
         mixed_labels = lam * labels + (1 - lam) * labels[index]
 
-        # interleave and forward
-        # logits, new_model_state = apply_fn(mixed_inputs, params)
-        index = jr.permutation(rng, len(mixed_inputs))
-        mixed_inputs = mixed_inputs[index]
-        mixed_inputs = jnp.array_split(mixed_inputs, len(mixed_inputs) // len(x))
-        logits, new_model_state = apply_fn(mixed_inputs[0], params)
-        logits = jnp.concatenate([logits] + [apply_fn(v, params)[0] for v in mixed_inputs[1:]])
-        logits = F.permutate(logits, index, inv=True)
+        mixed_inputs = jnp.array_split(mixed_inputs, len(inputs) // len(x))
+        mixed_inputs = interleave(mixed_inputs)
 
-        logits_x, logits_y = logits[: len(x)], logits[len(x) :]
+        logits, new_model_state = apply_fn(mixed_inputs[0], params)
+        logits = [logits] + [apply_fn(v, params)[0] for v in mixed_inputs[1:]]
+        logits = interleave(logits)
+
+        logits_x, logits_y = logits[0], jnp.concatenate(logits[1:])
         labels_x, labels_y = mixed_labels[: len(x)], mixed_labels[len(x) :]
+        assert len(logits_x) == len(labels_x)
+        assert len(logits_y) == len(labels_y)
 
         sup_loss = F.cross_entropy(logits_x, labels_x).mean()
         unsup_loss = F.squared_error(linen.softmax(logits_y), labels_y).mean()
@@ -127,16 +127,12 @@ class MixMatch(Learner):
         return loss, (updates, scalars)
 
 
-def interleave(xy, batch: int):
+def interleave(xy):
     nu = len(xy) - 1
-
-    groups = jnp.full(nu + 1, batch // (nu + 1))
-    bias = jnp.zeros_like(groups)
-    bias = bias.at[-(batch - jnp.sum(groups))].add(1)
-    groups = groups + bias
-    offsets = jnp.cumsum(groups)
-
-    xy = [[v[offsets[p] : offsets[p + 1]] for p in range(nu + 1)] for v in xy]
+    xy = [[x[::-1] for x in reversed(jnp.array_split(v[::-1], nu + 1))] for v in xy]
+    for i in range(1, nu + 1):
+        xy[0][i], xy[i][i] = xy[i][i], xy[0][i]
+    return [jnp.concatenate(v) for v in xy]
 
 
 # def interleave_offsets(batch, nu):
