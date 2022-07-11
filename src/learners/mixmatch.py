@@ -73,11 +73,14 @@ class MixMatch(Learner):
             batch["labeled"]["labels"], self.data_meta["num_classes"], self.label_smoothing
         )
 
-        logits_y1, _ = apply_fn(y1, train_state.params)
-        logits_y2, _ = apply_fn(y2, train_state.params)
+        # guess labels.
+        logits_y1 = apply_fn(y1, train_state.params)[0]
+        logits_y2 = apply_fn(y2, train_state.params)[0]
+
         # average
         ly = (linen.softmax(logits_y1) + linen.softmax(logits_y2)) / 2
         ly /= jnp.sum(ly, axis=-1, keepdims=True)
+
         # sharpening
         ly = ly ** (1 / self.T)
         ly /= jnp.sum(ly, axis=-1, keepdims=True)
@@ -97,7 +100,7 @@ class MixMatch(Learner):
         # logits, new_model_state = apply_fn(mixed_inputs, params)
         index = jr.permutation(rng, len(mixed_inputs))
         mixed_inputs = mixed_inputs[index]
-        mixed_inputs = jnp.split(mixed_inputs, len(mixed_inputs) // len(x))
+        mixed_inputs = jnp.array_split(mixed_inputs, len(mixed_inputs) // len(x))
         logits, new_model_state = apply_fn(mixed_inputs[0], params)
         logits = jnp.concatenate([logits] + [apply_fn(v, params)[0] for v in mixed_inputs[1:]])
         logits = F.permutate(logits, index, inv=True)
@@ -122,3 +125,35 @@ class MixMatch(Learner):
         }
 
         return loss, (updates, scalars)
+
+
+def interleave(xy, batch: int):
+    nu = len(xy) - 1
+
+    groups = jnp.full(nu + 1, batch // (nu + 1))
+    bias = jnp.zeros_like(groups)
+    bias = bias.at[-(batch - jnp.sum(groups))].add(1)
+    groups = groups + bias
+    offsets = jnp.cumsum(groups)
+
+    xy = [[v[offsets[p] : offsets[p + 1]] for p in range(nu + 1)] for v in xy]
+
+
+# def interleave_offsets(batch, nu):
+#     groups = [batch // (nu + 1)] * (nu + 1)
+#     for x in range(batch - sum(groups)):
+#         groups[-x - 1] += 1
+#     offsets = [0]
+#     for g in groups:
+#         offsets.append(offsets[-1] + g)
+#     assert offsets[-1] == batch
+#     return offsets
+
+
+# def interleave(xy, batch):
+#     nu = len(xy) - 1
+#     offsets = interleave_offsets(batch, nu)
+#     xy = [[v[offsets[p]:offsets[p + 1]] for p in range(nu + 1)] for v in xy]
+#     for i in range(1, nu + 1):
+#         xy[0][i], xy[i][i] = xy[i][i], xy[0][i]
+#     return [tf.concat(v, axis=0) for v in xy]
