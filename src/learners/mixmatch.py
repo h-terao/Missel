@@ -86,14 +86,22 @@ class MixMatch(Learner):
         inputs = jnp.concatenate([x, y1, y2])
         labels = jnp.concatenate([lx, ly, ly])
 
-        index_rng, mixup_ratio_rng = jr.split(rng)
+        rng, index_rng, mixup_ratio_rng = jr.split(rng, 3)
         index = jr.permutation(index_rng, len(inputs))
         lam = jr.beta(mixup_ratio_rng, self.alpha, self.alpha)
         lam = jnp.maximum(lam, 1 - lam)
         mixed_inputs = lam * inputs + (1 - lam) * inputs[index]
         mixed_labels = lam * labels + (1 - lam) * labels[index]
 
-        logits, new_model_state = apply_fn(mixed_inputs, params)
+        # interleave and forward
+        # logits, new_model_state = apply_fn(mixed_inputs, params)
+        index = jr.permutation(rng, len(mixed_inputs))
+        mixed_inputs = mixed_inputs[index]
+        mixed_inputs = jnp.split(mixed_inputs, len(mixed_inputs) // len(x))
+        logits, new_model_state = apply_fn(mixed_inputs[0], params)
+        logits = jnp.concatenate([logits] + [apply_fn(v, params)[0] for v in mixed_inputs[1:]])
+        logits = F.permutate(logits, index, inv=True)
+
         logits_x, logits_y = logits[: len(x)], logits[len(x) :]
         labels_x, labels_y = mixed_labels[: len(x)], mixed_labels[len(x) :]
 
@@ -113,5 +121,4 @@ class MixMatch(Learner):
             "acc5": F.accuracy(logits, lx, k=5),
         }
 
-        scale_factor = len(inputs) // len(x)
-        return scale_factor * loss, (updates, scalars)
+        return loss, (updates, scalars)
