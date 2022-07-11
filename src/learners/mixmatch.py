@@ -82,21 +82,14 @@ class MixMatch(Learner):
         inputs = jnp.concatenate([x, y1, y2])
         labels = jnp.concatenate([lx, ly, ly])
 
-        rng, mixup_index_rng, mixup_ratio_rng = jr.split(rng, 3)
-        mixup_index = jr.permutation(mixup_index_rng, len(inputs))
+        index_rng, mixup_ratio_rng = jr.split(rng)
+        index = jr.permutation(index_rng, len(inputs))
         lam = jr.beta(mixup_ratio_rng, self.alpha, self.alpha)
         lam = jnp.maximum(lam, 1 - lam)
-        mixed_inputs = lam * inputs + (1 - lam) * F.permutate(inputs, mixup_index)
-        mixed_labels = lam * labels + (1 - lam) * F.permutate(labels, mixup_index)
+        mixed_inputs = lam * inputs + (1 - lam) * inputs[index]
+        mixed_labels = lam * labels + (1 - lam) * labels[index]
 
-        shuffle_index = jr.permutation(rng, len(inputs))
-        mixed_inputs = F.permutate(mixed_inputs, shuffle_index)
-        mixed_inputs = jnp.split(mixed_inputs, len(inputs) // len(x))
-
-        logit, new_model_state = apply_fn(mixed_inputs[0], params)
-        logits = jnp.concatenate([logit] + [apply_fn(v, params)[0] for v in mixed_inputs[1:]])
-        logits = F.permutate(logits, shuffle_index, inv=True)
-
+        logits, new_model_state = apply_fn(mixed_inputs, params)
         logits_x, logits_y = logits[: len(x)], logits[len(x) :]
         labels_x, labels_y = mixed_labels[: len(x)], mixed_labels[len(x) :]
 
@@ -105,10 +98,16 @@ class MixMatch(Learner):
 
         loss = sup_loss + self.lambda_y * warmup * unsup_loss
         updates = {"model_state": new_model_state, "rng": new_rng}
+
+        logits = apply_fn(x, params)
         scalars = {
             "loss": loss,
             "sup_loss": sup_loss,
             "unsup_loss": unsup_loss,
             "warmup": warmup,
+            "acc1": F.accuracy(logits, lx),
+            "acc5": F.accuracy(logits, lx, k=5),
         }
-        return loss, (updates, scalars)
+
+        scale_factor = len(inputs) // len(x)
+        return scale_factor * loss, (updates, scalars)
