@@ -24,6 +24,7 @@ Missel provides popular semi-supervised learning (SemiSL) methods implemented by
 ### Main results
 
 - MeanTeacher@cifar10.4000: 91.7
+- Mixmatch@cifar10.250: 85.8
 
 ## Usage
 
