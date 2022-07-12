@@ -15,6 +15,8 @@ class ArrayDataset(Base):
     mean: Any
     std: Any
 
+    no_flip: bool = False
+
     train_split: str = "train"
     ulb_split: str | None = None
     test_split: str = "test"
@@ -54,4 +56,5 @@ class ArrayDataset(Base):
             "image_size": self.image_size,
             "mean": jnp.array(self.mean),
             "std": jnp.array(self.std),
+            "no_flip": self.no_flip,
         }

@@ -110,7 +110,7 @@ class VAT(Learner):
         rng, new_rng = jr.split(train_state.rng)
         rng = jr.fold_in(rng, jax.lax.axis_index("batch"))
         warmup = jnp.clip(train_state.step / self.train_steps / self.unsup_warmup_pos, 0, 1)
-        transform = T.random_crop_flip(self.data_meta["image_size"])
+        transform = T.random_crop_flip(self.data_meta["image_size"], self.data_meta["no_flip"])
 
         def apply_fn(x):
             variables = {"params": params, **train_state.model_state}
