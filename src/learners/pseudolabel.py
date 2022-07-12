@@ -86,7 +86,7 @@ class PseudoLabel(Learner):
         probs_y = linen.softmax(logits_y)
         ly = F.one_hot(jnp.argmax(probs_y, axis=-1), self.data_meta["num_classes"])
         max_probs = jnp.max(probs_y, axis=-1)
-        mask = jnp.array(max_probs > self.threshold, dtype=logits_y.dtype)
+        mask = (max_probs > self.threshold).astype(jnp.float32)
         unsup_loss = (mask * F.cross_entropy(logits_y, ly)).mean()
 
         loss = sup_loss + self.lambda_y * warmup * unsup_loss

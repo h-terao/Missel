@@ -21,15 +21,23 @@ Batch = Dict[str, chex.Array]
 
 
 class Learner:
-    """Abstract class to implement SSL methods.
+    """Base class to implement SSL methods.
 
-    Attribute:
+    Args:
+        data_meta: Meta information of the dataset.
+        train_steps (int): Total number of steps for training.
+        base_model (Module): Base model.
+        tx (GradientTransformation): Optax optimizer.
+        label_smoothing (float): Label smoothing parameter.
+        momentum_ema (float): Momentum value to update EMA model.
+        precision (str): Precision. fp16, bf16 and fp32 are supported.
+
+    Attributes:
         train_state_cls: TrainState class.
         classifier_cls: Classifier class.
-        default_entries: Entries to log on console.
-        always_updates: Parameters to update everytime
-            even when infinite grads are found. (Only used when precision=fp16.)
-        model: Flax model.
+        default_entries: Entries to log metrics on console.
+        always_updates: Parameters to update everytime.
+            This attribute only works when precision=fp16.
     """
 
     train_state_cls: Type[struct.PyTreeNode] = TrainState
@@ -106,8 +114,9 @@ class Learner:
         )
 
         # TODO: Add model information such as GFLOPs, #params, ...
-        model_info = dict()
-
+        model_info = {
+            "params": sum([x.size for x in jax.tree_leaves(params)]),
+        }
         return train_state, model_info
 
     def train_fn(self, train_state: TrainState, batch: Batch) -> tuple[TrainState, Scalars]:
