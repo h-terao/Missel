@@ -29,6 +29,7 @@ class Learner:
         default_entries: Entries to log on console.
         always_updates: Parameters to update everytime
             even when infinite grads are found. (Only used when precision=fp16.)
+        model: Flax model.
     """
 
     train_state_cls: Type[struct.PyTreeNode] = TrainState
@@ -60,20 +61,30 @@ class Learner:
     ) -> tuple[chex.Array, tuple[Updates, Scalars]]:
         raise NotImplementedError("Implement loss_fn!")
 
-    def init_fn(self, rng: chex.PRNGKey, batch: Batch, **kwargs) -> TrainState:
-        """Initialize train_state."""
-        param_rng, state_rng = jr.split(rng)
-        model = self.classifier_cls(
+    @property
+    def model(self) -> linen.Module:
+        """Returns flax model."""
+        return self.classifier_cls(
             self.base_model,
             num_classes=self.data_meta["num_classes"],
             mean=self.data_meta["mean"],
             std=self.data_meta["std"],
         )
 
+    def init_fn(self, rng: chex.PRNGKey, batch: Batch, **kwargs) -> TrainState:
+        """Initialize train_state."""
+        param_rng, state_rng = jr.split(rng)
+        # model = self.classifier_cls(
+        #     self.base_model,
+        #     num_classes=self.data_meta["num_classes"],
+        #     mean=self.data_meta["mean"],
+        #     std=self.data_meta["std"],
+        # )
+
         @functools.partial(jax.jit, backend="cpu")
         def initialize(rng, batch):
             x = batch["labeled"]["inputs"] / 255.0
-            variables = model.init({"params": rng}, x, train=True)
+            variables = self.model.init({"params": rng}, x, train=True)
             model_state, params = variables.pop("params")
             return params, model_state
 
@@ -85,7 +96,7 @@ class Learner:
         params, model_state = initialize(param_rng, batch)
         train_state = self.train_state_cls.create(
             rng=state_rng,
-            apply_fn=model.apply,
+            apply_fn=self.model.apply,
             params=params,
             model_state=model_state,
             tx=self.tx,
