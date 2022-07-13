@@ -1,0 +1,12 @@
+# @package _global_
+
+defaults:
+  - override /learner: mixmatch.yaml
+  - override /model: wrn28_2.yaml
+  - override /optimizer: sgd.yaml
+  - override /dataset: cifar10.yaml
+  - override /callbacks: default.yaml
+
+dataset:
+  num_labels: -1  # Fully supervised.
+  include_lb_to_ulb: True

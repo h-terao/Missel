@@ -12,6 +12,7 @@
 Missel provides popular semi-supervised learning (SemiSL) methods implemented by JAX/Flax. You can easily try and customize them.
 
 ### Methods
+- Supervised
 - PiModel (now in progress)
 - PseudoLabel
 - MeanTeacher
@@ -37,22 +38,32 @@ Currently, SemiSL methods are only tested by cifar10.
 
 ## Usage
 
-### Installation
+To start Missel, I recommend to use apptainer.
 
-Missel is tested on the container.
-You can build the container using `apptainer/env.def`.
-
-```sh
-git clone git@github.com:h-terao/Missel.git && cd Missel
-sudo singularity build env.sif apptainer/env.def
-apptainer shell --nv env.sif
-```
-
-### Training
-
+1. Clone this repository in your machine.
+2. Install [Apptainer](https://apptainer.org/docs/admin/main/installation.html#installation-on-linux)
+3. Type the following command to build the container.
 ```bash
-python train.py learner=<Method> dataset=<Dataset> dataset.num_labels=<Number of labeled data> <Other configuration>
+sudo apptainer build env.sif apptainer/env.def
 ```
+
+Of course, you can prepare the environment in your local system. Please check apptainer/env.def for the details of my environment.
+
+After building the container, you can start training as follows:
+```bash
+apptainer exec --nv env.sif python train.py experiment=<learner name> <other configs>
+```
+
+For example, if you want to train ResNet50 by VAT on cifar10 with 4000 labels, you should type the following command:
+```bash
+apptainer exec --nv env.sif python train.py experiment=vat model=resnet50 dataset=cifar10 dataset.num_labels=4000
+```
+
+You can check other arguments via:
+```bash
+apptainer exec --nv env.sif python train.py --help
+```
+
 
 <br>
 

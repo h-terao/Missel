@@ -1,0 +1,8 @@
+_target_: src.learners.Supervised
+
+# Common parameters
+base_model: ${model}
+tx: ${optimizer}
+label_smoothing: 0
+momentum_ema: 0.999
+precision: ${precision}
