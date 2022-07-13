@@ -17,6 +17,7 @@ Missel provides popular semi-supervised learning (SemiSL) methods implemented by
 - MeanTeacher
 - VAT (now in progress)
 - MixMatch
+- UDA (now in progress)
 
 ### Datasets
 - cifar10

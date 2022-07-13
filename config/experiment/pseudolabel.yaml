@@ -1,0 +1,9 @@
+defaults:
+  - override /learner: pseudolabel.yaml
+  - override /model: wrn28_2.yaml
+  - override /optimizer: sgd.yaml
+  - override /dataset: cifar10.yaml
+  - override /callbacks: default.yaml
+
+dataset:
+  num_labels: ???
