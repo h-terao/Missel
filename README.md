@@ -12,8 +12,9 @@
 Missel provides popular semi-supervised learning (SemiSL) methods implemented by JAX/Flax. You can easily try and customize them.
 
 ### Methods supported
+- PseudoLabel
 - MeanTeacher
-- MixMatch (now in progress.)
+- MixMatch
 
 ### Datasets supported
 
@@ -23,6 +24,7 @@ Missel provides popular semi-supervised learning (SemiSL) methods implemented by
 
 ### Main results
 
+- PseudoLabel@cifar10.4000: 84.8
 - MeanTeacher@cifar10.4000: 91.7
 - Mixmatch@cifar10.250: 85.8
 
