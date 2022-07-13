@@ -29,8 +29,10 @@ Currently, SemiSL methods are only tested by cifar10.
 
 | cifar10 | 40 labels | 250 labels | 4000 labels |
 | ---- | ---- | ---- | ---- |
+| PiModel | N/A | N/A | N/A |
 | PseudoLabel | N/A | N/A | 84.8 |
 | MeanTeacher | N/A | N/A | 91.7 |
+| VAT | N/A | N/A | N/A |
 | MixMatch | N/A | 84.5 | N/A |
 
 ## Usage
