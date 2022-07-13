@@ -13,7 +13,7 @@ Batch = Any
 
 
 class MixMatch(Learner):
-    """MixMatch Learner.
+    """MixMatch learner.
 
     Args:
         data_meta: Meta information of the dataset.

@@ -13,7 +13,7 @@ Batch = Any
 
 
 class MeanTeacher(Learner):
-    """A Learner for MeanTeacher.
+    """MeanTeacher learner.
 
     Args:
         data_meta: Meta information of the dataset.

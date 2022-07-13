@@ -12,8 +12,10 @@
 Missel provides popular semi-supervised learning (SemiSL) methods implemented by JAX/Flax. You can easily try and customize them.
 
 ### Methods
+- PiModel (now in progress)
 - PseudoLabel
 - MeanTeacher
+- VAT (now in progress)
 - MixMatch
 
 ### Datasets

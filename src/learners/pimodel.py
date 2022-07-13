@@ -12,8 +12,8 @@ from .learner import Learner, TrainState, functional as F, transforms as T
 Batch = Any
 
 
-class PseudoLabel(Learner):
-    """PseudoLabel learner.
+class PiModel(Learner):
+    """Pi-Model learner.
 
     Args:
         data_meta: Meta information of the dataset.
@@ -24,19 +24,10 @@ class PseudoLabel(Learner):
         momentum_ema (float): Momentum value to update EMA model.
         precision (str): Precision. fp16, bf16 and fp32 are supported.
         lambda_y (float): Coefficient of the unsupervised loss.
-        threshold (float): Threshold to filter low-confidence predictions.
         unsup_warmup_pos (float): Warmup position of epochs.
     """
 
-    default_entries: list[str] = [
-        "warmup",
-        "loss",
-        "sup_loss",
-        "unsup_loss",
-        "conf",
-        "mask_prob",
-        "acc1",
-    ]
+    default_entries: list[str] = ["warmup", "loss", "sup_loss", "unsup_loss", "acc1"]
 
     def __init__(
         self,
@@ -44,9 +35,8 @@ class PseudoLabel(Learner):
         train_steps: int,
         base_model: linen.Module,
         tx: optax.GradientTransformation,
-        lambda_y: float = 100,
-        threshold: float = 0.95,
-        unsup_warmup_pos: float = 1 / 64,
+        lambda_y: float = 50,
+        unsup_warmup_pos: float = 0.4,
         label_smoothing: float = 0,
         momentum_ema: float = 0.999,
         precision: str = "fp32",
@@ -56,7 +46,6 @@ class PseudoLabel(Learner):
         )
         self.lambda_y = lambda_y
         self.unsup_warmup_pos = unsup_warmup_pos
-        self.threshold = threshold
 
     def loss_fn(self, params: core.FrozenDict, train_state: TrainState, batch: Batch):
         rng, new_rng = jr.split(train_state.rng)
@@ -72,9 +61,10 @@ class PseudoLabel(Learner):
             logits = output["logits"]
             return logits, new_model_state
 
-        x_rng, y_rng = jr.split(rng)
+        x_rng, y_rng, yhat_rng = jr.split(rng, 3)
         x = transform(x_rng, batch["labeled"]["inputs"] / 255.0)
         y = transform(y_rng, batch["unlabeled"]["inputs"] / 255.0)
+        yhat = transform(yhat_rng, batch["unlabeled"]["inputs"] / 255.0)
         lx = F.one_hot(
             batch["labeled"]["labels"], self.data_meta["num_classes"], self.label_smoothing
         )
@@ -83,11 +73,8 @@ class PseudoLabel(Learner):
         sup_loss = F.cross_entropy(logits_x, lx).mean()
 
         logits_y, _ = apply_fn(y, params)
-        probs_y = linen.softmax(logits_y)
-        ly = F.one_hot(jnp.argmax(probs_y, axis=-1), self.data_meta["num_classes"])
-        max_probs = jnp.max(probs_y, axis=-1)
-        mask = (max_probs > self.threshold).astype(jnp.float32)
-        unsup_loss = (mask * F.cross_entropy(logits_y, ly)).mean()
+        logits_yhat, _ = apply_fn(yhat, params)
+        unsup_loss = F.squared_error(linen.softmax(logits_y), linen.softmax(logits_yhat)).mean()
 
         loss = sup_loss + self.lambda_y * warmup * unsup_loss
         updates = {"model_state": new_model_state, "rng": new_rng}
@@ -96,10 +83,7 @@ class PseudoLabel(Learner):
             "sup_loss": sup_loss,
             "unsup_loss": unsup_loss,
             "warmup": warmup,
-            "conf": max_probs.mean(),
-            "mask_prob": mask.mean(),
-            "acc1": F.accuracy(logits_x, lx),
-            "acc5": F.accuracy(logits_x, lx, k=5),
+            "acc1": F.accuracy(logits_x, lx, k=1).mean(),
+            "acc5": F.accuracy(logits_x, lx, k=5).mean(),
         }
-
         return loss, (updates, scalars)

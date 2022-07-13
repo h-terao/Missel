@@ -14,7 +14,7 @@ Batch = Any
 
 
 class VAT(Learner):
-    """A Learner for Virtual Adversarial Training.
+    """Virtual Adversarial Training (VAT) learner.
 
     Args:
         data_meta: Meta information of the dataset.
