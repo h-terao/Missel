@@ -1,3 +1,5 @@
+# @package _global_
+
 defaults:
   - override /learner: meanteacher.yaml
   - override /model: wrn28_2.yaml
