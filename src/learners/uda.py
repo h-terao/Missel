@@ -85,13 +85,11 @@ class UDA(Learner):
         return tsa
 
     def loss_fn(self, params: core.FrozenDict, train_state: TrainState, batch: Batch):
-        raise NotImplementedError
-
         rng, new_rng = jr.split(train_state.rng)
         rng = jr.fold_in(rng, jax.lax.axis_index("batch"))
         transform_weak = T.random_crop_flip(self.data_meta["image_size"], self.data_meta["no_flip"])
-        transform_strong = T.random_crop_flip(
-            self.data_meta["image_size"], self.data_meta["no_flip"]
+        transform_strong = T.randaugment(
+            self.data_meta["image_size"], self.data_meta["no_flip"], cutout=True
         )
 
         def apply_fn(x, params):
