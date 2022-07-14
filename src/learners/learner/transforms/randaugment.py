@@ -14,7 +14,7 @@ def randaugment(
     num_layers: int = 2,
     num_bins: int = 10,
     cutout: bool = False,
-    order: int = 2,
+    order: int = 0,
     mode: str = "constant",
     cval: float = 0.5,
 ):
