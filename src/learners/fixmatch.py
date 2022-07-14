@@ -12,32 +12,28 @@ from .learner import Learner, TrainState, functional as F, transforms as T
 Batch = Any
 
 
-class UDA(Learner):
-    """Unsupervised Data Augmentation (UDA) learner.
+class FixMatch(Learner):
+    """FixMatch learner.
 
     Args:
         data_meta: Meta information of the dataset.
-        train_steps (int): Total number of steps for training.
-        base_model (Module): Base model.
-        tx (GradientTransformation): Optax optimizer.
-        label_smoothing (float): Label smoothing parameter.
-        momentum_ema (float): Momentum value to update EMA model.
-        precision (str): Precision. fp16, bf16 and fp32 are supported.
-        tsa (str): Type of TSA schedule. none, linear, log or exp.
-        lambda_y (float): Coefficient of the unsupervised loss.
-        T (float): Temperature parameter.
-        threshold (float): Threshold parameter.
+        train_steps: Total number of steps for training.
+        base_model: Base model.
+        tx: Optax optimizer.
+        label_smoothing: Label smoothing parameter.
+        momentum_ema: Momentum value to update EMA model.
+        precision: Precision. fp16, bf16 and fp32 are supported.
+        lambda_y: Coefficient of the unsupervised loss.
+        T: Temperature parameter. If zero, use one-hot labels for unsupervised loss.
+        threshold: Threshold parameter.
     """
 
     default_entries: list[str] = [
-        "warmup",
-        "tsa",
         "loss",
         "sup_loss",
         "unsup_loss",
         "conf",
-        "sup_mask",
-        "unsup_mask",
+        "mask",
         "acc1",
     ]
 
@@ -47,41 +43,19 @@ class UDA(Learner):
         train_steps: int,
         base_model: linen.Module,
         tx: optax.GradientTransformation,
-        tsa: str = "linear",
         lambda_y: float = 1.0,
-        T: float = 0.4,
-        threshold: float = 0.8,
+        T: float = 0,
+        threshold: float = 0.95,
         label_smoothing: float = 0,
         momentum_ema: float = 0.999,
         precision: str = "fp32",
     ) -> None:
-        assert tsa in ["linear", "exp", "log", "none"]
         super().__init__(
             data_meta, train_steps, base_model, tx, label_smoothing, momentum_ema, precision
         )
-        self.tsa_schedule = tsa
         self.lambda_y = lambda_y
         self.T = T
         self.threshold = threshold
-
-    def TSA(self, step: int):
-        """Training signal annealing."""
-        nC = self.data_meta["num_classes"]
-        threshold = step / self.train_steps
-        if self.tsa_schedule == "linear":
-            pass
-        elif self.tsa_schedule == "exp":
-            scale = 5.0
-            threshold = jnp.exp((threshold - 1) * scale)
-        elif self.tsa_schedule == "log":
-            scale = 5.0
-            threshold = 1 - jnp.exp(-threshold * scale)
-        elif self.tsa_schedule == "none":
-            return 1.0
-        else:
-            raise ValueError
-        tsa = threshold * (1 - 1 / nC) + 1 / nC
-        return tsa
 
     def loss_fn(self, params: core.FrozenDict, train_state: TrainState, batch: Batch):
         rng, new_rng = jr.split(train_state.rng)
@@ -112,17 +86,17 @@ class UDA(Learner):
         logits_x = logits[: len(x)]
         logits_y_w, logits_y_s = jnp.split(logits[len(x) :], 2)
 
-        tsa = self.TSA(train_state.step)
-        sup_mask = (jnp.max(linen.softmax(logits_x), axis=-1) < tsa).astype(jnp.float32)
-        sup_mask = jax.lax.stop_gradient(sup_mask)
-        sup_loss = (F.cross_entropy(logits_x, lx) * sup_mask).mean()
+        sup_loss = F.cross_entropy(logits_x, lx).mean()
 
         logits_y_w = jax.lax.stop_gradient(logits_y_w)
-        probs_y = linen.softmax(logits_y_w / self.T)
-        ly = F.one_hot(jnp.argmax(probs_y, axis=-1), self.data_meta["num_classes"])
+        probs_y = linen.softmax(logits_y_w)
         max_probs = jnp.max(probs_y, axis=-1)
-        unsup_mask = (max_probs > self.threshold).astype(jnp.float32)
-        unsup_loss = (unsup_mask * F.cross_entropy(logits_y_s, ly)).mean()
+        mask = (max_probs > self.threshold).astype(jnp.float32)
+        if self.T > 0:
+            ly = linen.softmax(logits_y_w / self.T)
+        else:
+            ly = F.one_hot(jnp.argmax(probs_y, axis=-1), self.data_meta["num_classes"])
+        unsup_loss = (mask * F.cross_entropy(logits_y_s, ly)).mean()
 
         loss = sup_loss + self.lambda_y * unsup_loss
         updates = {"model_state": new_model_state, "rng": new_rng}
@@ -130,10 +104,8 @@ class UDA(Learner):
             "loss": loss,
             "sup_loss": sup_loss,
             "unsup_loss": unsup_loss,
-            "tsa": tsa,
             "conf": max_probs.mean(),
-            "sup_mask": sup_mask.mean(),
-            "unsup_mask": unsup_mask.mean(),
+            "mask": mask.mean(),
             "acc1": F.accuracy(logits_x, lx),
             "acc5": F.accuracy(logits_x, lx, k=5),
         }
