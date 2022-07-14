@@ -1,4 +1,4 @@
-_target_: src.learners.PseudoLabel
+_target_: src.learners.UDA
 
 # Common parameters
 base_model: ${model}
