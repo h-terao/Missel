@@ -13,10 +13,10 @@ Missel provides popular semi-supervised learning (SemiSL) methods implemented by
 
 ### Methods
 - Supervised
-- PiModel (now in progress)
+- PiModel
 - PseudoLabel
 - MeanTeacher
-- VAT (now in progress)
+- VAT
 - MixMatch
 - UDA (now in progress)
 
@@ -30,10 +30,11 @@ Currently, SemiSL methods are only tested by cifar10.
 
 | cifar10 | 40 labels | 250 labels | 4000 labels |
 | ---- | ---- | ---- | ---- |
-| PiModel | N/A | N/A | N/A |
+| Supervised | N/A | N/A | N/A |
+| PiModel | N/A | N/A | 87.7 |
 | PseudoLabel | N/A | N/A | 84.8 |
 | MeanTeacher | N/A | N/A | 91.7 |
-| VAT | N/A | N/A | N/A |
+| VAT | N/A | N/A | 89.4 |
 | MixMatch | N/A | 84.5 | N/A |
 
 ## Usage
