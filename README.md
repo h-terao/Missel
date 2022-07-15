@@ -5,7 +5,7 @@
 </p>
 
 <h1 align="center">Missel</h1>
-<h3 align="center">A semi-supervised learning library built on JAX/Flax</h3>
+<h3 align="center">A semi-supervised learning collection built on JAX/Flax</h3>
 
 ## Overview
 
