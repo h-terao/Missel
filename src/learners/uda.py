@@ -120,7 +120,7 @@ class UDA(Learner):
         sup_mask = jax.lax.stop_gradient(sup_mask)
         sup_loss = (F.cross_entropy(logits_x, lx) * sup_mask).mean()
 
-        entropy = F.entropy(logits_y_w)
+        entropy = F.entropy(logits_y_w).mean()
 
         logits_y_w = jax.lax.stop_gradient(logits_y_w)
         max_probs = jnp.max(linen.softmax(logits_y_w), axis=-1)
