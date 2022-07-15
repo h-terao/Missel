@@ -82,12 +82,6 @@ class Learner:
     def init_fn(self, rng: chex.PRNGKey, batch: Batch, **kwargs) -> TrainState:
         """Initialize train_state."""
         param_rng, state_rng = jr.split(rng)
-        # model = self.classifier_cls(
-        #     self.base_model,
-        #     num_classes=self.data_meta["num_classes"],
-        #     mean=self.data_meta["mean"],
-        #     std=self.data_meta["std"],
-        # )
 
         @functools.partial(jax.jit, backend="cpu")
         def initialize(rng, batch):

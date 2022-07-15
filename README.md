@@ -1,16 +1,15 @@
 <p align="center">
     <br>
-    <img src="./figures/logo.png" height="100" width="100"/>
+    <img src="./figures/logo.png" height="128" width="128"/>
     <br>
 </p>
 
 <h1 align="center">Missel</h1>
-<h3 align="center">A collection of semi-supervised learning implemented by JAX/Flax</h3>
+<h3 align="center">A semi-supervised learning library built on JAX/Flax</h3>
 
 ## Overview
 
 Missel provides popular semi-supervised learning (SemiSL) methods implemented by JAX/Flax.
-<br>
 You can easily try and customize them.
 
 ### Methods
