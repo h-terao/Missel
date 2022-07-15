@@ -30,11 +30,11 @@ class UDA(Learner):
     """
 
     default_entries: list[str] = [
-        "warmup",
         "tsa",
         "loss",
         "sup_loss",
         "unsup_loss",
+        "entropy",
         "conf",
         "sup_mask",
         "unsup_mask",
@@ -49,6 +49,7 @@ class UDA(Learner):
         tx: optax.GradientTransformation,
         tsa: str = "linear",
         lambda_y: float = 1.0,
+        lambda_ent: float = 0,
         T: float = 0.4,
         threshold: float = 0.8,
         label_smoothing: float = 0,
@@ -61,6 +62,7 @@ class UDA(Learner):
         )
         self.tsa_schedule = tsa
         self.lambda_y = lambda_y
+        self.lambda_ent = lambda_ent
         self.T = T
         self.threshold = threshold
 
@@ -117,19 +119,20 @@ class UDA(Learner):
         sup_mask = jax.lax.stop_gradient(sup_mask)
         sup_loss = (F.cross_entropy(logits_x, lx) * sup_mask).mean()
 
-        logits_y_w = jax.lax.stop_gradient(logits_y_w)
-        probs_y = linen.softmax(logits_y_w / self.T)
-        ly = F.one_hot(jnp.argmax(probs_y, axis=-1), self.data_meta["num_classes"])
-        max_probs = jnp.max(probs_y, axis=-1)
-        unsup_mask = (max_probs > self.threshold).astype(jnp.float32)
-        unsup_loss = (unsup_mask * F.cross_entropy(logits_y_s, ly)).mean()
+        entropy = F.entropy(logits_y_w)
 
-        loss = sup_loss + self.lambda_y * unsup_loss
+        logits_y_w = jax.lax.stop_gradient(logits_y_w)
+        max_probs = jnp.max(linen.softmax(logits_y_w), axis=-1)
+        unsup_mask = (max_probs > self.threshold).astype(jnp.float32)
+        unsup_loss = (unsup_mask * F.kl_div(logits_y_w / self.T, logits_y_s)).mean()
+
+        loss = sup_loss + self.lambda_y * unsup_loss + self.lambda_ent * entropy
         updates = {"model_state": new_model_state, "rng": new_rng}
         scalars = {
             "loss": loss,
             "sup_loss": sup_loss,
             "unsup_loss": unsup_loss,
+            "entropy": entropy,
             "tsa": tsa,
             "conf": max_probs.mean(),
             "sup_mask": sup_mask.mean(),
