@@ -10,6 +10,5 @@ precision: ${precision}
 # Method specific parameters
 tsa: none
 lambda_y: 1.0
-lambda_entmin: 0
 T: 0.4
 threshold: 0.8
