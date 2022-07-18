@@ -116,11 +116,13 @@ class UDA(Learner):
         sup_mask = jax.lax.stop_gradient(sup_mask)
         sup_loss = (F.cross_entropy(logits_x, lx) * sup_mask).mean()
 
-        # Google's TF implementation.
+        # From TorchSSL.
         logits_y_w = jax.lax.stop_gradient(logits_y_w)
         max_probs = jnp.max(linen.softmax(logits_y_w), axis=-1)
         unsup_mask = (max_probs > self.threshold).astype(jnp.float32)
-        unsup_loss = (unsup_mask * F.kl_div(logits_y_w / self.T, logits_y_s)).mean()
+        unsup_loss = (
+            unsup_mask * F.cross_entropy(logits_y_s, linen.softmax(logits_y_w / self.T))
+        ).mean()
 
         loss = sup_loss + self.lambda_y * unsup_loss
         updates = {"model_state": new_model_state, "rng": new_rng}
