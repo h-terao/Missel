@@ -39,7 +39,7 @@ Currently, SemiSL methods are only tested by cifar10.
 | VAT | N/A | N/A | 89.4 |
 | MixMatch | N/A | 84.5 | N/A |
 | UDA | N/A | 95.4 | N/A |
-| FixMatch | N/A | N/A | N/A |
+| FixMatch | N/A | 95.2 | N/A |
 
 ## Getting started
 ### Setup
