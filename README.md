@@ -28,7 +28,7 @@ You can easily try and customize them.
 - STL10
 
 ### Results
-Currently, SemiSL methods are only tested by cifar10.
+Currently, SemiSL methods are only tested on cifar10.
 
 | cifar10 | 40 labels | 250 labels | 4000 labels |
 | ---- | ---- | ---- | ---- |
@@ -38,7 +38,7 @@ Currently, SemiSL methods are only tested by cifar10.
 | MeanTeacher | N/A | N/A | 91.7 |
 | VAT | N/A | N/A | 89.4 |
 | MixMatch | N/A | 84.5 | N/A |
-| UDA | N/A | 95.4 | N/A |
+| UDA | 87.4 | 95.4 | N/A |
 | FixMatch | N/A | 95.2 | N/A |
 
 ## Getting started
