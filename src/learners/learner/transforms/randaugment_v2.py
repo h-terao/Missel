@@ -19,30 +19,15 @@ def randaugment(
     cval: float = 0.5,
 ):
     """TorchSSL ver RandAugment."""
-    augment_space = {
-        "ShearX": (jnp.linspace(0, 0.3, num_bins), True),
-        "ShearY": (jnp.linspace(0, 0.3, num_bins), True),
-        "TranslateX": (jnp.linspace(0, 150.0 / 331.0, num_bins), True),
-        "TranslateY": (jnp.linspace(0, 150.0 / 331.0, num_bins), True),
-        "Rotate": (jnp.linspace(0, 30, num_bins), True),
-        "Brightness": (jnp.linspace(0, 0.9, num_bins), True),
-        "Color": (jnp.linspace(0, 0.9, num_bins), True),
-        "Contrast": (jnp.linspace(0, 0.9, num_bins), True),
-        "Sharpness": (jnp.linspace(0, 0.9, num_bins), True),
-        "Posterize": (8 - jnp.round(jnp.arange(num_bins) / (num_bins - 1) / 4), False),
-        "Solarize": (jnp.linspace(255.0, 0.0, num_bins), False),
-        "AutoContrast": (jnp.zeros(num_bins), False),
-        "Equalize": (jnp.zeros(num_bins), False),
-        "Invert": (jnp.zeros(num_bins), False),
-        "Identity": (jnp.zeros(num_bins), False),
-    }
 
-    augment_space = {
-        "AutoContrast": (0, 1),
-        "Brightness": ()
-        "ShearX": (-0.3, 0.3),
-        "ShearY": (-0.3, 0.3),
-        "TranslateX": (-0.3, 0.3),
-        "TranslateY": (-0.3, 0.3),
-        "Solarize": (0, 1.0),
-    }
+    def sample_v(rng: chex.PRNGKey, min_v: float, max_v: float, negate: bool) -> chex.Array:
+        v_rng, neg_rng = jr.split(rng)
+        v = jr.uniform(key=v_rng, minval=min_v, maxval=max_v)
+        if negate:
+            v = jnp.where(jr.uniform(neg_rng) < 0.5, -v, v)
+        return v
+
+    def shear_x(
+        rng: chex.PRNGKey, x: chex.Array, min_v: float = 0, max_v: float = 0.3, negate: bool = True
+    ) -> chex.Array:
+        v = sample_v(rng, min_v, max_v, negate)

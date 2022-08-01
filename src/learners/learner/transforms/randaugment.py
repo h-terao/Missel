@@ -19,11 +19,11 @@ def randaugment(
     cval: float = 0.5,
 ):
     def shear_x(x: chex.Array, idx: int, magnitudes: chex.Array):
-        v = magnitudes[idx]
+        v = jnp.degrees(jnp.arctan(magnitudes[idx]))
         return T.shear_x(x, v, order=order, mode=mode, cval=cval)
 
     def shear_y(x: chex.Array, idx: int, magnitudes: chex.Array):
-        v = magnitudes[idx]
+        v = jnp.degrees(jnp.arctan(magnitudes[idx]))
         return T.shear_y(x, v, order=order, mode=mode, cval=cval)
 
     def translate_x(x: chex.Array, idx: int, magnitudes: chex.Array):
