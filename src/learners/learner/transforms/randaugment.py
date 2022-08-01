@@ -41,19 +41,19 @@ def randaugment(
         return T.rotate(x, v, order=order, mode=mode, cval=cval)
 
     def brightness(x: chex.Array, idx: int, magnitudes: chex.Array):
-        v = 1.0 + magnitudes[idx]
+        v = magnitudes[idx]
         return T.brightness(x, v)
 
     def color(x: chex.Array, idx: int, magnitudes: chex.Array):
-        v = 1.0 + magnitudes[idx]
+        v = magnitudes[idx]
         return T.color(x, v)
 
     def contrast(x: chex.Array, idx: int, magnitudes: chex.Array):
-        v = 1.0 + magnitudes[idx]
+        v = magnitudes[idx]
         return T.contrast(x, v)
 
     def sharpness(x: chex.Array, idx: int, magnitudes: chex.Array):
-        v = 1.0 + magnitudes[idx]
+        v = magnitudes[idx]
         return T.sharpness(x, v)
 
     def posterize(x: chex.Array, idx: int, magnitudes: chex.Array):
@@ -102,15 +102,15 @@ def randaugment(
     augment_space = {
         "ShearX": (jnp.linspace(0, 0.3, num_bins), True),
         "ShearY": (jnp.linspace(0, 0.3, num_bins), True),
-        "TranslateX": (jnp.linspace(0, 150.0 / 331.0, num_bins), True),
-        "TranslateY": (jnp.linspace(0, 150.0 / 331.0, num_bins), True),
+        "TranslateX": (jnp.linspace(0, 0.3, num_bins), True),
+        "TranslateY": (jnp.linspace(0, 0.3, num_bins), True),
         "Rotate": (jnp.linspace(0, 30, num_bins), True),
-        "Brightness": (jnp.linspace(0, 0.9, num_bins), True),
-        "Color": (jnp.linspace(0, 0.9, num_bins), True),
-        "Contrast": (jnp.linspace(0, 0.9, num_bins), True),
-        "Sharpness": (jnp.linspace(0, 0.9, num_bins), True),
+        "Brightness": (jnp.linspace(0.05, 0.95, num_bins), True),
+        "Color": (jnp.linspace(0.05, 0.95, num_bins), True),
+        "Contrast": (jnp.linspace(0.05, 0.95, num_bins), True),
+        "Sharpness": (jnp.linspace(0.05, 0.95, num_bins), True),
         "Posterize": (8 - jnp.round(jnp.arange(num_bins) / (num_bins - 1) / 4), False),
-        "Solarize": (jnp.linspace(255.0, 0.0, num_bins), False),
+        "Solarize": (jnp.linspace(1.0, 0.0, num_bins), False),
         "AutoContrast": (jnp.zeros(num_bins), False),
         "Equalize": (jnp.zeros(num_bins), False),
         "Invert": (jnp.zeros(num_bins), False),
