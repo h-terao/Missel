@@ -38,8 +38,8 @@ Currently, SemiSL methods are only tested on cifar10.
 | MeanTeacher | N/A | N/A | 91.7 |
 | VAT | N/A | N/A | 89.4 |
 | MixMatch | N/A | 84.5 | N/A |
-| UDA | N/A | N/A | N/A |
-| FixMatch | 92.9 | N/A | N/A |
+| UDA | 84.9 | N/A | N/A |
+| FixMatch | 93.1 | N/A | N/A |
 
 ## Getting started
 ### Setup
