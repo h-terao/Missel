@@ -1,0 +1,14 @@
+_target_: src.learners.FixMatch
+
+# Common parameters
+base_model: ${model}
+tx: ${optimizer}
+label_smoothing: 0
+momentum_ema: 0.999
+precision: ${precision}
+
+# Method specific parameters
+lambda_y: 0.5
+lambda_match: 1.5
+lambda_rot: 0.5
+T: 0.5

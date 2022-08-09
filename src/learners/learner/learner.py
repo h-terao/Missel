@@ -79,7 +79,9 @@ class Learner:
             std=self.data_meta["std"],
         )
 
-    def init_fn(self, rng: chex.PRNGKey, batch: Batch, **kwargs) -> TrainState:
+    def init_fn(
+        self, rng: chex.PRNGKey, batch: Batch, **kwargs
+    ) -> tuple[TrainState, dict[str, int | float]]:
         """Initialize train_state."""
         param_rng, state_rng = jr.split(rng)
 

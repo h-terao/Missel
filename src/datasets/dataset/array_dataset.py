@@ -57,4 +57,5 @@ class ArrayDataset(Base):
             "mean": jnp.array(self.mean),
             "std": jnp.array(self.std),
             "no_flip": self.no_flip,
+            "dist": None,
         }
