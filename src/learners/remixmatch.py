@@ -62,6 +62,7 @@ class RemixMatch(Learner):
         lambda_y: float = 1.0,
         lambda_match: float = 1.0,
         lambda_rot: float = 1.0,
+        unsup_warmup_pos: float = 0.4,
         label_smoothing: float = 0,
         momentum_ema: float = 0.999,
         precision: str = "fp32",
@@ -72,6 +73,7 @@ class RemixMatch(Learner):
         self.lambda_y = lambda_y
         self.lambda_match = lambda_match
         self.lambda_rot = lambda_rot
+        self.unsup_warmup_pos = unsup_warmup_pos
         self.T = T
 
     def init_fn(
