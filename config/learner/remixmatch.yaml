@@ -11,4 +11,3 @@ precision: ${precision}
 lambda_y: 0.5
 lambda_match: 1.5
 lambda_rot: 0.5
-T: 0.5
