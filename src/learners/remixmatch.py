@@ -99,9 +99,9 @@ class RemixMatch(Learner):
                 variables, x, train=True, mutable=["batch_stats"]
             )
             if return_rot:
-                return output["logits"], new_model_state
-            else:
                 return output["logits_rot"], new_model_state
+            else:
+                return output["logits"], new_model_state
 
         if self.data_meta["dist"] is not None:
             p_target = self.data_meta["dist"]
@@ -111,7 +111,8 @@ class RemixMatch(Learner):
 
         rng, y_w_rng = jr.split(rng)
         y_w = transform_weak(y_w_rng, batch["unlabeled"]["inputs"] / 255.0)
-        probs_y = linen.softmax(apply_fn(y_w, params)[0], axis=-1)
+        logits_y, _ = apply_fn(y_w, params)
+        probs_y = linen.softmax(logits_y, axis=-1)
         p_model = train_state.p_model * 0.999 + jnp.mean(probs_y, axis=0) * 0.001
 
         ly = probs_y * p_target / p_model
@@ -144,7 +145,6 @@ class RemixMatch(Learner):
         # interleave.
         mixed_inputs = jnp.array_split(mixed_inputs, len(inputs) // len(x))
         mixed_inputs = interleave(mixed_inputs)
-
         logits, new_model_state = apply_fn(mixed_inputs[0], params)
         logits = [logits] + [apply_fn(v, params)[0] for v in mixed_inputs[1:]]
         logits = interleave(logits)
