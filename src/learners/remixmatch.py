@@ -62,6 +62,7 @@ class RemixMatch(Learner):
         lambda_y: float = 1.0,
         lambda_match: float = 1.0,
         lambda_rot: float = 1.0,
+        T: float = 0.5,
         unsup_warmup_pos: float = 0.4,
         label_smoothing: float = 0,
         momentum_ema: float = 0.999,
