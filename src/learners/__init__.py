@@ -7,4 +7,4 @@ from .pimodel import PiModel
 from .uda import UDA
 from .supervised import Supervised
 from .fixmatch import FixMatch
-from .remixmatch import RemixMatch
+from .remixmatch import ReMixMatch

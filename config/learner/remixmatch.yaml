@@ -1,4 +1,4 @@
-_target_: src.learners.RemixMatch
+_target_: src.learners.ReMixMatch
 
 # Common parameters
 base_model: ${model}

@@ -1,12 +1,12 @@
 from __future__ import annotations
 from typing import Any
+import functools
 
 import jax
 import jax.numpy as jnp
 import jax.random as jr
 from flax import linen, core
 import optax
-from squidink.functional import rot90
 import chex
 
 from .learner import (
@@ -24,8 +24,8 @@ class TrainState(TrainStateBase):
     p_model: chex.Array | None = None
 
 
-class RemixMatch(Learner):
-    """RemixMatch learner.
+class ReMixMatch(Learner):
+    """ReMixMatch learner.
 
     Args:
         data_meta: Meta information of the dataset.
@@ -128,7 +128,7 @@ class RemixMatch(Learner):
         x = transform_weak(x_rng, batch["labeled"]["inputs"] / 255.0)
         y_s1 = transform_strong(y_s1_rng, batch["unlabeled"]["inputs"] / 255.0)
         y_s2 = transform_strong(y_s2_rng, batch["unlabeled"]["inputs"] / 255.0)
-        y_rot, l_rot = rotate(y_rot_rng, batch["unlabeled"]["inputs"] / 255.0)
+        y_rot, l_rot = rot90(y_rot_rng, batch["unlabeled"]["inputs"] / 255.0)
         lx = F.one_hot(
             batch["labeled"]["labels"], self.data_meta["num_classes"], self.label_smoothing
         )
@@ -194,13 +194,13 @@ def interleave(xy):
     return [jnp.concatenate(v) for v in xy]
 
 
-def rotate(rng, x):
+def rot90(rng, x):
     def f(rng, xi):
-        n = jr.randint(rng, (), 0, 4)
-        x = rot90(xi, n)
-        return x, n
+        branches = [functools.partial(jnp.rot90, k=k, axes=(-3, -2)) for k in range(4)]
+        k = jr.randint(rng, (), 0, 4)
+        xi = jax.lax.switch(k, branches, xi)
+        label = F.one_hot(k, num_classes=4)
+        return xi, label
 
     N = len(x)
-    x_rot, l_rot = jax.vmap(f)(jr.split(rng, N), x)
-    l_rot = F.one_hot(l_rot, 4)
-    return x_rot, l_rot
+    return jax.vmap(f)(jr.split(rng, N), x)
