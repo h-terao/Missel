@@ -59,12 +59,12 @@ class ReMixMatch(Learner):
         train_steps: int,
         base_model: linen.Module,
         tx: optax.GradientTransformation,
-        lambda_y: float = 1.0,
-        lambda_match: float = 1.0,
-        lambda_rot: float = 1.0,
+        lambda_y: float = 0.5,
+        lambda_match: float = 1.5,
+        lambda_rot: float = 0.5,
         T: float = 0.5,
         alpha: float = 0.75,
-        unsup_warmup_pos: float = 0.4,
+        unsup_warmup_pos: float = 0.015625,
         label_smoothing: float = 0,
         momentum_ema: float = 0.999,
         precision: str = "fp32",
@@ -163,7 +163,7 @@ class ReMixMatch(Learner):
         rot_loss = F.cross_entropy(logits_rot, l_rot).mean()
         sup_loss = F.cross_entropy(logits_x, labels_x).mean()
         unsup_mix_loss = F.cross_entropy(logits_y, labels_y).mean()
-        unsup_loss = F.cross_entropy(logits_y_u1, ly)
+        unsup_loss = F.cross_entropy(logits_y_u1, ly).mean()
 
         lambda_y = warmup * self.lambda_y
         lambda_match = warmup * self.lambda_match
