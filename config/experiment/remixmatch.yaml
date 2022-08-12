@@ -8,5 +8,5 @@ defaults:
   - override /callbacks: default.yaml
 
 dataset:
-  uratio: 7
+  uratio: 1
   num_labels: ???
