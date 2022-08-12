@@ -12,4 +12,5 @@ lambda_y: 0.5
 lambda_match: 1.5
 lambda_rot: 0.5
 T: 0.5
-unsup_warmup_pos: 0.4
+alpha: 0.75
+unsup_warmup_pos: 0.015625

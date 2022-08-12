@@ -63,6 +63,7 @@ class ReMixMatch(Learner):
         lambda_match: float = 1.0,
         lambda_rot: float = 1.0,
         T: float = 0.5,
+        alpha: float = 0.75,
         unsup_warmup_pos: float = 0.4,
         label_smoothing: float = 0,
         momentum_ema: float = 0.999,
@@ -76,6 +77,7 @@ class ReMixMatch(Learner):
         self.lambda_rot = lambda_rot
         self.unsup_warmup_pos = unsup_warmup_pos
         self.T = T
+        self.alpha = alpha
 
     def init_fn(
         self, rng: chex.PRNGKey, batch: Batch, **kwargs
